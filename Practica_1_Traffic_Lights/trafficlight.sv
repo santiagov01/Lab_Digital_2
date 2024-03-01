@@ -2,20 +2,23 @@
 	Módulo controlador de tráfico de luces 
 	************************************** */
 module trafficlight #(FPGAFREQ = 50_000_000, 
-   T_GREENMAIN = 18, T_YELLOWMAIN = 4, T_GREENSEC = 10, T_YELLOWSEC = 3, T_GREENPEATON = 5, T_REDPEATON = 2 
-   (clk, nreset, main_lights, sec_lights);
+   T_GREENMAIN = 18, T_YELLOWMAIN = 4, T_GREENSEC = 10, T_YELLOWSEC = 3, T_GREENPEATON = 5, T_REDPEATON = 2, T_RESET = 3)
+   (clk, nreset, main_lights, sec_lights, pea_lights, sol_light,b_npeaton);
 
 	/* Entradas y salidas */
-	input logic clk, nreset;
+	input logic clk, nreset, b_npeaton;
 	output logic [2:0] main_lights;	// rojo, amarillo, verde
 	output logic [2:0] sec_lights;	// rojo, amarillo, verde
 	output logic [1:0] pea_lights;	// rojo, verde
+	output logic sol_light;				// LED peaton solicitado
 
 
 	/* Circuito para invertir señal de reloj */
 	logic reset;
 	assign reset = ~nreset;
-	/*Boton  */
+	/*Boton  solicitud peaton*/
+	logic b_peaton;
+	assign b_peaton = ~b_npeaton;
 	
 	/* Señales internas para contar segundos a partir del reloj de la FPGA */
 	localparam FREQDIVCNTBITS = $clog2(FPGAFREQ);	// Bits para contador divisor de frecuencia
@@ -24,8 +27,10 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	logic [SECCNTBITS-1:0] cnt_secLeft;			// Contador de segundos restantes
 	logic cnt_timeIsUp;								// Tiempo completado en estado actual
 	
+	logic solicitud; 							//Señal que indica si se ha solicitado
+	
 	/* Definición de estados de la FSM y señales internas para estado actual y siguiente */
-	typedef enum logic [2:0] {Smg, Smy, Ssg, Ssy, Spg, Spr} State;
+	typedef enum logic [2:0] {Sreset, Smg, Smy, Ssg, Ssy, Spg, Spr} State;
 	State currentState, nextState;
 	
 	/* *********************************************************************************************
@@ -34,9 +39,18 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 		********************************************************************************************* */
 	always_ff @(posedge clk, posedge reset) 
 		if (reset)
-			currentState <= Smg;
+			currentState <= Sreset;
 		else 
 			currentState <= nextState;
+		
+	always_ff @(posedge clk, posedge reset) 
+		begin
+		if (b_peaton) //*** Tal vez hace falta poner condinacional
+			solicitud <= 1'b1;
+		else
+			solicitud <= 1'b0;
+		end
+			
 	
 	/* *********************************************************************************************
 		Circuito combinacional para determinar siguiente estado de la FSM 
@@ -65,7 +79,13 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	always_comb begin
 		main_lights = 3'b100;			// Para simplificar cada case
 		sec_lights = 3'b100;				// Para simplificar cada case
+		pea_lights = 2'b10;			
 		case (currentState)
+			Sreset: begin 					//Estado Reset
+				main_lights = 3'b100;   
+				sec_lights = 3'b100;
+				pea_lights = 2'b10;
+				end
 			Smg: 
 				main_lights = 3'b001;
 			Smy:  
@@ -74,6 +94,10 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 				sec_lights = 3'b001;
 			Ssy:  
 				sec_lights = 3'b010;
+			Spg:
+				pea_lights = 2'b01;  //Estado peaton
+			Spr:
+				pea_lights = 2'b10;
 		endcase
 	end	
 
@@ -83,12 +107,12 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	always_ff @(posedge clk, posedge reset) begin
 		if (reset) begin
 			cnt_divFreq <= 0;
-			cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting #de bits significativos
+			cnt_secLeft <= SECCNTBITS'(T_RESET-1);	// Casting #de bits significativos
 			cnt_timeIsUp <= 0;
+			//solicitud <= 1'b0; //Apaga la solicitud
 		end else begin
 			cnt_divFreq <= cnt_divFreq + 1'b1;
 			cnt_timeIsUp <= 0;
-
 			if (cnt_divFreq == FPGAFREQ-1) begin // ¿Un segundo completado?
 				cnt_divFreq <= 0;
 				cnt_secLeft <= cnt_secLeft - 1'b1;
@@ -97,6 +121,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 				if(cnt_secLeft == 0) begin // Contador == 0 y pasará en este ciclo a modCnt-1
 					cnt_timeIsUp <= 1;
 					case (currentState)
+						Sreset:
+							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);
 						Smg:
 							cnt_secLeft <= SECCNTBITS'(T_YELLOWMAIN-1);	// Casting
 						Smy:
@@ -104,13 +130,23 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 						Ssg:
 							cnt_secLeft <= SECCNTBITS'(T_YELLOWSEC-1);	// Casting
 						Ssy:
-							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
+							begin
+								if(solicitud) 		//Revisa si peaton ha solicitado
+									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting
+								else
+									cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
+							end
+						Spg:
+							cnt_secLeft <= SECCNTBITS'(T_REDPEATON-1);
+						Spr:
+							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);
 					endcase
 				end
 			end
 		end	
 	end
 endmodule
+
 
 /* ****************
 	Módulo testbench 
