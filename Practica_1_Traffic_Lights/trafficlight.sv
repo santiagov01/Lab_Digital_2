@@ -17,8 +17,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	logic reset;
 	assign reset = ~nreset;
 	/*Boton  solicitud peaton*/
-	logic b_peaton;
-	assign b_peaton = ~b_npeaton;
+	logic b_peaton = 1'b0;    // boton iniciado
+	//assign b_peaton = ~b_npeaton;
 	
 	/* Señales internas para contar segundos a partir del reloj de la FPGA */
 	localparam FREQDIVCNTBITS = $clog2(FPGAFREQ);	// Bits para contador divisor de frecuencia
@@ -43,14 +43,16 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 		else 
 			currentState <= nextState;
 		
-	always_ff @(posedge clk, posedge reset) 
+		
+	/*always_ff @(posedge clk, posedge reset) 
 		begin
-		if (b_peaton) //*** Tal vez hace falta poner condinacional
+		if (b_peaton) //				*** Tal vez hace falta poner condinacional
 			solicitud <= 1'b1;
 		else
 			solicitud <= 1'b0;
-		end
-			
+		end*/
+		
+	
 	
 	/* *********************************************************************************************
 		Circuito combinacional para determinar siguiente estado de la FSM 
@@ -65,6 +67,15 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 				Ssg:	
 					nextState = Ssy;
 				Ssy:	
+					if (b_peaton) begin   //pregunta si boton esta activo
+						nextState = Spg;
+					end
+					else begin
+						nextState = Smg;
+					end
+				Spg:
+					nextState = Spr;
+				Spr:
 					nextState = Smg;
 				default:		
 					nextState = Smg;
@@ -111,6 +122,11 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			cnt_timeIsUp <= 0;
 			//solicitud <= 1'b0; //Apaga la solicitud
 		end else begin
+			if (b_npeaton) begin      // Cambia el estado si se preciona el boton
+				if (~b_peaton) begin
+						b_peaton <= 1'b1;   // Peaton en verde
+				end	
+			end
 			cnt_divFreq <= cnt_divFreq + 1'b1;
 			cnt_timeIsUp <= 0;
 			if (cnt_divFreq == FPGAFREQ-1) begin // ¿Un segundo completado?
