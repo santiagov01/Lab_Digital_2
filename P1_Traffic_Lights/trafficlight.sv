@@ -123,7 +123,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			solicitud <= 0; //Apaga la solicitud
 			sol_light = 1'b0;
 		end else begin
-			if (b_peaton && currentState != Spg) begin     // Cambia el estado si se presiona el boton
+			if (b_peaton && currentState != Spg && currentState != Sreset) begin     // Cambia el estado si se presiona el boton
 				solicitud <= 1;
 				sol_light = 1'b1;
 			end
@@ -131,7 +131,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 				solicitud <= 0;
 				sol_light = 1'b0;
 			end
-			
+		
 			cnt_divFreq <= cnt_divFreq + 1'b1;
 			cnt_timeIsUp <= 0;
 			if (cnt_divFreq == FPGAFREQ-1) begin // ¿Un segundo completado?
@@ -143,7 +143,11 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 					cnt_timeIsUp <= 1;
 					case (currentState)
 						Sreset:
+							begin
 							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);
+							sol_light = 1'b0;
+							solicitud <= 0;
+							end
 						Smg:
 							cnt_secLeft <= SECCNTBITS'(T_YELLOWMAIN-1);	// Casting
 						Smy:
@@ -185,7 +189,7 @@ module testbench();
 	
 	
 	localparam FPGAFREQ = 8;
-	localparam T_GREENMAIN = 8;
+	localparam T_GREENMAIN = 18;
 	localparam T_YELLOWMAIN = 3;
 	localparam T_GREENSEC = 6;
 	localparam T_YELLOWSEC = 2;
@@ -202,6 +206,12 @@ module testbench();
 		clk = 0;
 		reset = 1;
 		#(delay);
+		reset = 0;
+		#(delay*10);
+		reset = 1;
+		b_peaton = 1;
+		#(delay);
+		b_peaton = 0;
 		reset = 0;
 		#(delay*(T_GREENMAIN+T_YELLOWMAIN+T_GREENSEC+T_YELLOWSEC)*FPGAFREQ*2);
 		b_peaton = 1;
