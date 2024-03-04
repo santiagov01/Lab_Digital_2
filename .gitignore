@@ -1,5 +1,8 @@
 db
 incremental_db
 output_files
+simulation
 *.sv.bak
 *_defaults.qdf
+*.rpt
+*.qws

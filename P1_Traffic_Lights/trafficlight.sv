@@ -121,9 +121,16 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			cnt_secLeft <= SECCNTBITS'(T_RESET-1);	// Casting #de bits significativos
 			cnt_timeIsUp <= 0;
 			solicitud <= 0; //Apaga la solicitud
+			sol_light = 1'b0;
 		end else begin
-			if (b_peaton && currentState == ~Spg)      // Cambia el estado si se presiona el boton
+			if (b_peaton && currentState == ~Spg) begin     // Cambia el estado si se presiona el boton
 				solicitud <= 1;
+				sol_light = 1'b1;
+			end
+			else if (b_peaton && currentState == Spg) begin
+				solicitud <= 0;
+				sol_light = 1'b0;
+			end
 			
 			cnt_divFreq <= cnt_divFreq + 1'b1;
 			cnt_timeIsUp <= 0;
@@ -147,7 +154,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 							begin
 								if(solicitud) 	begin	//Revisa si peaton ha solicitado
 									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting
-									solicitud <= 0;
+									solicitud <= 0; //problema acá. no toma la actualización de luces
+									sol_light = 1'b0;
 									end
 								else
 									cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
@@ -169,19 +177,24 @@ endmodule
 	**************** */
 module testbench();
 	/* Declaración de señales y variables internas */
-	logic clk, reset;
+	logic clk, reset, b_peaton, sol_light;
 	logic [2:0] main_lights, sec_lights;
-
+	logic [1:0] pea_lights;
+	
+	
 	localparam FPGAFREQ = 8;
 	localparam T_GREENMAIN = 8;
 	localparam T_YELLOWMAIN = 3;
 	localparam T_GREENSEC = 6;
 	localparam T_YELLOWSEC = 2;
+	localparam T_GREENPEATON = 4;
+	localparam T_REDPEATON = 2;
+	localparam T_RESET = 3;
 	localparam delay = 20ps;
 	
 	// Instanciar objeto
-	trafficlight #(FPGAFREQ, T_GREENMAIN, T_YELLOWMAIN, T_GREENSEC, T_YELLOWSEC) tl 
-	              (clk, ~reset, main_lights, sec_lights);
+	trafficlight #(FPGAFREQ, T_GREENMAIN, T_YELLOWMAIN, T_GREENSEC, T_YELLOWSEC,T_GREENPEATON,T_REDPEATON,T_RESET) tl 
+	              (clk, ~reset, main_lights, sec_lights, pea_lights,~b_peaton, sol_light);
 	// Simulación
 	initial begin
 		clk = 0;
@@ -189,7 +202,10 @@ module testbench();
 		#(delay);
 		reset = 0;
 		#(delay*(T_GREENMAIN+T_YELLOWMAIN+T_GREENSEC+T_YELLOWSEC)*FPGAFREQ*2);
-
+		b_peaton = 1;
+		#(delay);
+		b_peaton = 0;
+		#(delay*(T_GREENMAIN+T_YELLOWMAIN+T_GREENSEC+T_YELLOWSEC+T_GREENPEATON+T_REDPEATON)*FPGAFREQ*2);
 		$stop;
 	end
 	
