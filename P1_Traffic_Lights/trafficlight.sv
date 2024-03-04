@@ -3,7 +3,7 @@
 	************************************** */
 module trafficlight #(FPGAFREQ = 50_000_000, 
    T_GREENMAIN = 18, T_YELLOWMAIN = 4, T_GREENSEC = 10, T_YELLOWSEC = 3, T_GREENPEATON = 5, T_REDPEATON = 2, T_RESET = 3)
-   (clk, nreset, main_lights, sec_lights, pea_lights, sol_light,b_npeaton);
+   (clk, nreset, main_lights, sec_lights, pea_lights,b_npeaton, sol_light);
 
 	/* Entradas y salidas */
 	input logic clk, nreset, b_npeaton;
@@ -17,8 +17,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	logic reset;
 	assign reset = ~nreset;
 	/*Boton  solicitud peaton*/
-	logic b_peaton = 1'b0;    // boton iniciado
-	//assign b_peaton = ~b_npeaton;
+	logic b_peaton;    // boton iniciado
+	assign b_peaton = ~b_npeaton;
 	
 	/* Señales internas para contar segundos a partir del reloj de la FPGA */
 	localparam FREQDIVCNTBITS = $clog2(FPGAFREQ);	// Bits para contador divisor de frecuencia
@@ -44,13 +44,13 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			currentState <= nextState;
 		
 		
-	/*always_ff @(posedge clk, posedge reset) 
-		begin
-		if (b_peaton) //				*** Tal vez hace falta poner condinacional
-			solicitud <= 1'b1;
-		else
-			solicitud <= 1'b0;
-		end*/
+//	always_ff @(posedge clk, posedge reset) 
+//		begin
+//		if (b_peaton) //				*** Tal vez hace falta poner condinacional
+//			solicitud <= 1'b1;
+//		else
+//			solicitud <= 1'b0;
+//		end
 		
 	
 	
@@ -67,14 +67,14 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 				Ssg:	
 					nextState = Ssy;
 				Ssy:	
-					if (b_peaton) begin   //pregunta si boton esta activo
-						nextState = Spg;
-					end
-					else begin
+					if (solicitud)   //pregunta si boton esta activo
+						nextState = Spg;					
+					else 
 						nextState = Smg;
-					end
+					
 				Spg:
 					nextState = Spr;
+					
 				Spr:
 					nextState = Smg;
 				default:		
@@ -120,13 +120,11 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			cnt_divFreq <= 0;
 			cnt_secLeft <= SECCNTBITS'(T_RESET-1);	// Casting #de bits significativos
 			cnt_timeIsUp <= 0;
-			//solicitud <= 1'b0; //Apaga la solicitud
+			solicitud <= 0; //Apaga la solicitud
 		end else begin
-			if (b_npeaton) begin      // Cambia el estado si se preciona el boton
-				if (~b_peaton) begin
-						b_peaton <= 1'b1;   // Peaton en verde
-				end	
-			end
+			if (b_peaton && currentState == ~Spg)      // Cambia el estado si se presiona el boton
+				solicitud <= 1;
+			
 			cnt_divFreq <= cnt_divFreq + 1'b1;
 			cnt_timeIsUp <= 0;
 			if (cnt_divFreq == FPGAFREQ-1) begin // ¿Un segundo completado?
@@ -147,8 +145,10 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 							cnt_secLeft <= SECCNTBITS'(T_YELLOWSEC-1);	// Casting
 						Ssy:
 							begin
-								if(solicitud) 		//Revisa si peaton ha solicitado
+								if(solicitud) 	begin	//Revisa si peaton ha solicitado
 									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting
+									solicitud <= 0;
+									end
 								else
 									cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
 							end
