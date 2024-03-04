@@ -123,7 +123,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			solicitud <= 0; //Apaga la solicitud
 			sol_light = 1'b0;
 		end else begin
-			if (b_peaton && currentState == ~Spg) begin     // Cambia el estado si se presiona el boton
+			if (b_peaton && currentState != Spg) begin     // Cambia el estado si se presiona el boton
 				solicitud <= 1;
 				sol_light = 1'b1;
 			end
@@ -152,16 +152,18 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 							cnt_secLeft <= SECCNTBITS'(T_YELLOWSEC-1);	// Casting
 						Ssy:
 							begin
-								if(solicitud) 	begin	//Revisa si peaton ha solicitado
-									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting
-									solicitud <= 0; //problema acá. no toma la actualización de luces
+								if(solicitud == 1) 	begin	//Revisa si peaton ha solicitado
+									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting									
 									sol_light = 1'b0;
 									end
 								else
 									cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
 							end
 						Spg:
+							begin
 							cnt_secLeft <= SECCNTBITS'(T_REDPEATON-1);
+							solicitud <= 0; //Si se pone en el estado ssy, no alcanza a interpretarlo como 1.
+							end
 						Spr:
 							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);
 					endcase
@@ -205,7 +207,14 @@ module testbench();
 		b_peaton = 1;
 		#(delay);
 		b_peaton = 0;
-		#(delay*(T_GREENMAIN+T_YELLOWMAIN+T_GREENSEC+T_YELLOWSEC+T_GREENPEATON+T_REDPEATON)*FPGAFREQ*2);
+		#(delay*(36));
+		b_peaton = 1;
+		#(delay);
+		b_peaton = 0;
+		#(delay*(30));
+		b_peaton = 1;
+		#(delay);
+		b_peaton = 0;
 		$stop;
 	end
 	
