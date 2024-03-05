@@ -1,4 +1,4 @@
-module deco7seg_hexa(
+module deco_7seg(
 input logic [3:0] entrada,
 output logic [7:0] SEG
 );

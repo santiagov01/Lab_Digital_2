@@ -3,13 +3,15 @@
 	************************************** */
 module trafficlight #(FPGAFREQ = 50_000_000, 
    T_GREENMAIN = 18, T_YELLOWMAIN = 4, T_GREENSEC = 10, T_YELLOWSEC = 3, T_GREENPEATON = 5, T_REDPEATON = 2, T_RESET = 3)
-   (clk, nreset, main_lights, sec_lights, pea_lights,b_npeaton, sol_light);
+   (clk, nreset, main_lights, sec_lights, pea_lights,b_npeaton, sol_light, d_unidades, d_decenas);
 
 	/* Entradas y salidas */
 	input logic clk, nreset, b_npeaton;
 	output logic [2:0] main_lights;	// rojo, amarillo, verde
 	output logic [2:0] sec_lights;	// rojo, amarillo, verde
 	output logic [1:0] pea_lights;	// rojo, verde
+	output logic [7:0] d_unidades;
+	output logic [7:0] d_decenas;
 	output logic sol_light;				// LED peaton solicitado
 
 
@@ -33,6 +35,11 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	typedef enum logic [2:0] {Sreset, Smg, Smy, Ssg, Ssy, Spg, Spr} State;
 	State currentState, nextState;
 	
+	/* Asignacion de leds 7 segmentos para unidades y decenas*/
+	logic [3:0] e_unidades, e_decenas;
+	
+	deco_7seg dec7UNI(e_unidades, d_unidades);
+	deco_7seg dec7DEC(e_decenas, d_decenas);
 	/* *********************************************************************************************
 		Circuito secuencial para actualizar estado actual con el estado siguiente. 
 		Se emplea señal de reloj de 50 Mhz.  
@@ -123,7 +130,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			solicitud <= 0; //Apaga la solicitud
 			sol_light = 1'b0;
 		end else begin
-			if (b_peaton && currentState != Spg && currentState != Sreset) begin     // Cambia el estado si se presiona el boton
+		 // Cambia el estado si se presiona el boton
+			if (b_peaton && currentState != Spg && currentState != Sreset) begin    
 				solicitud <= 1;
 				sol_light = 1'b1;
 			end
@@ -175,8 +183,13 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			end
 		end	
 	end
+	always_comb begin		
+		e_unidades = cnt_secLeft%4'b1010;
+		e_decenas = cnt_secLeft/4'b1010;
+	end
 endmodule
 
+	
 
 /* ****************
 	Módulo testbench 
@@ -186,7 +199,7 @@ module testbench();
 	logic clk, reset, b_peaton, sol_light;
 	logic [2:0] main_lights, sec_lights;
 	logic [1:0] pea_lights;
-	
+	logic [7:0] d_unidades,d_decenas;
 	
 	localparam FPGAFREQ = 8;
 	localparam T_GREENMAIN = 18;
@@ -200,7 +213,7 @@ module testbench();
 	
 	// Instanciar objeto
 	trafficlight #(FPGAFREQ, T_GREENMAIN, T_YELLOWMAIN, T_GREENSEC, T_YELLOWSEC,T_GREENPEATON,T_REDPEATON,T_RESET) tl 
-	              (clk, ~reset, main_lights, sec_lights, pea_lights,~b_peaton, sol_light);
+	              (clk, ~reset, main_lights, sec_lights, pea_lights,~b_peaton, sol_light,d_unidades, d_decenas);
 	// Simulación
 	initial begin
 		clk = 0;
