@@ -12,7 +12,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	output logic [1:0] pea_lights;	// rojo, verde
 	output logic [7:0] d_unidades;
 	output logic [7:0] d_decenas;
-	output logic solicitud = 0;				// LED peaton solicitado
+	output logic solicitud = 0;				// Señal y LED peaton solicitado
 
 
 	/* Circuito para invertir señal de reloj */
@@ -38,8 +38,8 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 	/* Asignacion de leds 7 segmentos para unidades y decenas*/
 	logic [3:0] e_unidades, e_decenas;
 	
-	deco_7seg dec7UNI(e_unidades, d_unidades);
-	deco_7seg dec7DEC(e_decenas, d_decenas);
+	deco_7seg dec7UNI(e_unidades, 0, d_unidades);
+	deco_7seg dec7DEC(e_decenas, 1, d_decenas);
 	/* *********************************************************************************************
 		Circuito secuencial para actualizar estado actual con el estado siguiente. 
 		Se emplea señal de reloj de 50 Mhz.  
@@ -49,16 +49,6 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 			currentState <= Sreset;
 		else 
 			currentState <= nextState;
-		
-		
-//	always_ff @(posedge clk, posedge reset) 
-//		begin
-//		if (b_peaton) //				*** Tal vez hace falta poner condinacional
-//			solicitud <= 1'b1;
-//		else
-//			solicitud <= 1'b0;
-//		end
-		
 	
 	
 	/* *********************************************************************************************
@@ -135,7 +125,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 		else if(currentState == Spg)
 			solicitud <= 0;
 		else if (b_peaton && currentState != Spg && currentState != Sreset) begin    
-				solicitud <= 1;
+				solicitud <= 1; //Activa LED solicitud
 			end
 		else if (b_peaton && currentState == Spg) begin
 				solicitud <= 0;
@@ -154,7 +144,6 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 						Sreset:
 							begin
 							cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);
-
 							solicitud <= 0;
 							end
 						Smg:
@@ -166,8 +155,7 @@ module trafficlight #(FPGAFREQ = 50_000_000,
 						Ssy:
 							begin
 								if(solicitud == 1) 	begin	//Revisa si peaton ha solicitado
-									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting							
-
+									cnt_secLeft <= SECCNTBITS'(T_GREENPEATON-1);	// Casting					
 									end
 								else
 									cnt_secLeft <= SECCNTBITS'(T_GREENMAIN-1);	// Casting
