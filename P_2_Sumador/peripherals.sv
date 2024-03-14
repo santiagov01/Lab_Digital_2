@@ -48,14 +48,14 @@ module peripherals (clk, reset, enter, inputdata,
 		if (loaddata) begin
 			valuestoshowondisps[11:8] = {2'b0, datainput_i[1:0]};
 			valuestoshowondisps[7:0] = inputdata;
-			if (datainput_i[2] == 0) 
+			if (datainput_i[2] == 0) // Cuando pasa del cuarto dato
 				valuestoshowondisps[15:12] = 4'b1010;	// A0 - A3
 			else 
 				valuestoshowondisps[15:12] = 4'b1011;	// B0 - B3
 		end else begin
-			valuestoshowondisps[15:12] = 4'b1100;
+			valuestoshowondisps[15:12] = 4'b1100; // R -> resultado 
 			valuestoshowondisps[11:8] = {2'b0, dataoutput_i};
-			valuestoshowondisps[7:0] = dataR[dataoutput_i*8 +: 8];
+			valuestoshowondisps[7:0] = dataR[dataoutput_i*8 +: 8]; //aumenta cada 8 bits
 		end
 	end
 endmodule

@@ -16,7 +16,7 @@ module peripheral_getoperands (clk, reset, inputdata, enterpulse, datainput_i, d
 		if (reset) begin
 			reg_datainput <= 0;
 		end else if (datainput_i < 8) begin
-			reg_datainput[(datainput_i*8) +: 8] <= inputdata;
+			reg_datainput[(datainput_i*8) +: 8] <= inputdata; //asigna lo que indican los swiches cada 8 bits
 		end
 	end
 	
