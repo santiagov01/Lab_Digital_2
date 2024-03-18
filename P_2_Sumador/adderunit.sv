@@ -7,10 +7,11 @@ module adderunit (dataA, dataB, dataR);
 
 	// Internal signals to perform the multiplication
 	logic sign_sumR = 0;
-	logic [7:0] exp_sumR = 0;
-	logic [23:0] mantissa_sumR = 0; //****** pendiente modificar el rango
+	logic [7:0] exp_sumR;
+	logic [25:0] mantissa_sumR = 0; //****** pendiente modificar el rango
 	
-	logic [22:0] aux_A, aux_B; //*******Falta revisar bien cuantos bits son
+	logic [25:0] mantisaux_A, mantisaux_B; //*******Falta revisar bien cuantos bits son
+	logic [25:0] mantisanorm_A, mantisanorm_B; //*******Falta revisar bien cuantos bits son
 	logic cout;
 	
 	logic [1:0] aux_exp;
@@ -19,51 +20,36 @@ module adderunit (dataA, dataB, dataR);
 //***********************************************
 	always_comb begin
 		//Exponente A mayor que B?
+		mantisaux_A = {3'b001,dataA[22:0]};
+		mantisaux_B = {3'b001,dataB[22:0]};
+		
+		mantisanorm_A = 0;
+		mantisanorm_B = 0;
+		exp_sumR = 0;
 		if(dataA[30:23] > dataB[30:23]) begin 
 			//Restar exponentes
-			exp_sumR <= dataA[30:23] - dataB[30:23];
+			exp_sumR = dataA[30:23] - dataB[30:23];
 			//Desplazar mantisa con exponente menor
-			aux_B = dataB[22:0] >> (exp_sumR - 8'd127); 
-			aux_A = dataA[22:0];
+			mantisanorm_B = mantisaux_B[22:0] >> (exp_sumR); 
+			mantisanorm_A = mantisaux_A;
 			end
 		else if (dataA[30:23] < dataB[30:23]) begin
-			exp_sumR <= dataB[30:23] - dataA[30:23];
-			aux_A = dataA[22:0] >> (exp_sumR - 8'd127);
-			aux_B <= dataB[22:0];
+			exp_sumR = dataA[30:23] - dataB[30:23];
+			mantisanorm_A = mantisaux_A[22:0] >> (exp_sumR); 
+			mantisanorm_B = mantisaux_B;
 			end
 		else if (dataA[30:23] == dataB[30:23])
 			begin
 			//exp_sumR <= dataB[30:23];
-			aux_A <= dataA[22:0];
-			aux_B <= dataB[22:0];
+			mantisanorm_A = mantisaux_A;
+			mantisanorm_B = mantisaux_B;
 			end
 	end
 //***********************************************
 //				IDENTIFICAR SIGNO                   *
 //***********************************************
-	always_comb begin
-		if(dataA[30:23] > dataB[30:23]) begin
-			if(dataA[31])//Cuando es negativo
-				sign_sumR <= 1; //Resultado negativo
-			else
-				sign_sumR <= 0;
-			end	
-		else if (dataA[30:23] < dataB[30:23]) begin
-			if(dataB[31])
-				sign_sumR <= 1; 
-			else
-				sign_sumR <= 0;
-			end
-		else  begin // exponentes iguales
-			if(dataA[31] & dataA[22:0] > dataB[22:0]) //*****Si mantisa A > B .... y A es negativo....
-				sign_sumR <= 1; 
-			else if(dataB[31] & dataA[22:0] < dataB[22:0])//*****Si mantisa A < B .... y B es negativo....
-				sign_sumR <= 1;
-			else
-				sign_sumR <= 0;
-			end
-	end
-		//Falta asignar cuando son  iguales ¿que determina el resultado?	
+
+
 //***********************************************
 //				Process: mantissa adder             *
 //***********************************************	
@@ -71,18 +57,18 @@ module adderunit (dataA, dataB, dataR);
 	always_comb begin
 		if (dataA[31] ^ dataB[31]) //Si son diferentes los signos
 				if (dataA[31])
-					{cout, mantissa_sumR} = {1'b0, aux_B} + ({1'b0, ~aux_A} + 1'b1);//A negativo
+					mantissa_sumR = mantisanorm_B + (~mantisanorm_A + 1'b1);//A negativo
 				else
-					{cout, mantissa_sumR} = {1'b0, aux_A} + ({1'b0, ~aux_B} + 1'b1); //B negativo
+					mantissa_sumR = mantisanorm_A + (~mantisanorm_B + 1'b1); //B negativo
 		else begin
-				{cout, mantissa_sumR} = {1'b1, aux_A} + {1'b1, aux_B};
+				mantissa_sumR = mantisanorm_A + mantisanorm_B;
 				//sign_sumR = dataA[31];  //Mismo signo
 			end
 	end
 	
 	// Process: operand validator and result normalizer and assembler
 	always_comb begin
-		dataR[31] = sign_sumR;//*********
+		dataR[31] = mantissa_sumR[25];//*********
 		if (mantissa_sumR[23]) begin
 			dataR[30:23] = exp_sumR + 8'd1;
 			dataR[22:0] = mantissa_sumR[23:1];
@@ -98,13 +84,16 @@ endmodule
 	**************** */
 module testbench();
 	/* Declaración de señales y variables internas */
-	logic [31:0] dataA, dataB;
-	logic [31:0] dataR;
-	logic sign_sumR;
-	logic [7:0] exp_sumR;
-	logic [23:0] mantissa_sumR; //****** pendiente modificar el rango	
-	logic [22:0] aux_A, aux_B; //*******Falta revisar bien cuantos bits son
+	logic [31:0] dataA, dataB,dataR;
+	logic sign_sumR = 0;
+	logic [7:0] exp_sumR;00000000000000000000000
+	logic [24:0] mantissa_sumR = 0; //****** pendiente modificar el rango
+	
+	logic [25:0] mantisaux_A, mantisaux_B; //*******Falta revisar bien cuantos bits son
+	logic [25:0] mantisanorm_A, mantisanorm_B; //*******Falta revisar bien cuantos bits son
 	logic cout;
+	
+	logic [1:0] aux_exp;
 
 	localparam delay = 20ps;
 	
