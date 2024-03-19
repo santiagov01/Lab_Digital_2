@@ -6,19 +6,20 @@ module adderunit (dataA, dataB, dataR);
 	output logic [31:0] dataR;
 
 	// Internal signals to perform the multiplication
-	logic sign_sumR = 0;
-	logic [7:0] exp_sumR, exp_sumR_final;
-	logic [25:0] mantissa_sumR = 0; //****** pendiente modificar el rango
-	logic [25:0] mantissa_sumR_check = 0;
-	logic [25:0] mantisaux_A, mantisaux_B; //*******Falta revisar bien cuantos bits son
-	logic [25:0] mantisanorm_A, mantisanorm_B; //*******Falta revisar bien cuantos bits son
+	logic [7:0] exp_sumR, exp_sumR_final,dif;//dif: restar los exponentes para la diferencia
+	logic [25:0] mantisaux_A, mantisaux_B; //Se agrega 001 Se le debe agregar 001 (signo_carry_1.)
+	logic [25:0] mantisanorm_A, mantisanorm_B; //Mantisa normalizada si exponentes son diferentes
+	logic [25:0] negative_A, negative_B; //Mantisa negativa
+	logic [25:0] mantissa_sumR = 0; //Resultado de sumar
+	logic [25:0] mantissa_sumR_check = 0;//Actualizar mantisa luego de sumar
+	
 	
 	logic [25:0] mantisa_f_aux; //por si es necesaria 	azando
 	logic [22:0] frac; //para utilizar en el 	azamiento final a izquierda
 	logic [22:0] mantisaFinal;
 	logic cout;
 	logic [1:0] lastbits;
-	logic [22:0] first_one_position;
+	
 	logic [1:0] aux_exp;
 	
 	logic [4:0] desplz; //Cantidad de espacios para desplazar mantisa final 
@@ -34,21 +35,26 @@ module adderunit (dataA, dataB, dataR);
 		mantisanorm_A = 0;
 		mantisanorm_B = 0;
 		exp_sumR = 0;
+		dif = 0;
+		//Comparar exponentes
 		if(dataA[30:23] > dataB[30:23]) begin 
 			//Restar exponentes
-			exp_sumR = dataA[30:23] - dataB[30:23];
+			dif = dataA[30:23] - dataB[30:23];
+			exp_sumR = dataA[30:23];
 			//Desplazar mantisa con exponente menor
-			mantisanorm_B = mantisaux_B[22:0] >> (exp_sumR); 
+			mantisanorm_B = mantisaux_B >> (dif); 
 			mantisanorm_A = mantisaux_A;
 			end
 		else if (dataA[30:23] < dataB[30:23]) begin
-			exp_sumR = dataA[30:23] - dataB[30:23];
-			mantisanorm_A = mantisaux_A[22:0] >> (exp_sumR); 
+			dif = dataB[30:23] - dataA[30:23];
+			exp_sumR = dataB[30:23];
+			mantisanorm_A = mantisaux_A >> (dif); 
 			mantisanorm_B = mantisaux_B;
 			end
-		else if (dataA[30:23] == dataB[30:23])
+		//exponentes iguales, se deja igual
+		else if (dataA[30:23] == dataB[30:23]) 
 			begin
-			//exp_sumR <= dataB[30:23];
+			exp_sumR = dataB[30:23];
 			mantisanorm_A = mantisaux_A;
 			mantisanorm_B = mantisaux_B;
 			end
@@ -59,15 +65,18 @@ module adderunit (dataA, dataB, dataR);
 //***********************************************	
 
 	always_comb begin
+		negative_A = (~mantisanorm_A + 1'b1);//A negativo
+		negative_B = (~mantisanorm_B + 1'b1);//B negativo
 		if (dataA[31] ^ dataB[31]) //Si son diferentes los signos
 				if (dataA[31])
-				//El ultimo bit corresponde al signo, y los dos siguientes se revisan para ajustar exponente
-					mantissa_sumR = mantisanorm_B + (~mantisanorm_A + 1'b1);//A negativo
-				else
-					mantissa_sumR = mantisanorm_A + (~mantisanorm_B + 1'b1); //B negativo
-		else begin
+				//El ultimo bit corresponde al signo, y los dos siguientes se revisan para ajustar exponente					
+					mantissa_sumR = mantisanorm_B + negative_A;
+				else					
+					mantissa_sumR = mantisanorm_A + negative_B;
+		else if( dataA[31] & dataB[31]) // si son ambos negativos
+				mantissa_sumR = negative_A + negative_B;
+		else begin //si son ambos positivos
 				mantissa_sumR = mantisanorm_A + mantisanorm_B;
-				//sign_sumR = dataA[31];  //Mismo signo
 			end
 	end
 	
@@ -77,15 +86,14 @@ module adderunit (dataA, dataB, dataR);
 	always_comb begin
 		mantissa_sumR_check = 0;
 		if (mantissa_sumR[25])
-			mantissa_sumR_check = ~mantissa_sumR + 1'b1;
+			mantissa_sumR_check[24:0] = (~(mantissa_sumR[24:0]) + 1'b1); //complemento a 2
 		else
 			mantissa_sumR_check = mantissa_sumR;			
 	end
 //***********************************************
 //		AJUSTAR MANTISA LUEGO DE SUMA	            *
 //***********************************************
-	always_comb begin
-		first_one_position = 0;
+	always_comb begin		
 		lastbits = mantissa_sumR_check[24:23];
 		frac = mantissa_sumR_check[22:0];
 		exp_sumR_final = exp_sumR;
@@ -118,16 +126,17 @@ module adderunit (dataA, dataB, dataR);
 						23'b00000000000000000001???: desplz = 20;
 						23'b000000000000000000001??: desplz = 21;
 						23'b0000000000000000000001?: desplz = 22;
+						23'b00000000000000000000001: desplz = 23;
 						default:  desplz = 23; //falta revisar el caso donde todo es cero, caso especial ?						
 					endcase
 					mantisaFinal = frac << desplz;
-					exp_sumR_final= exp_sumR - 8'b1111_1111 - desplz;
+					exp_sumR_final= exp_sumR - desplz;
 				end
 				
 				default: 
-					begin
-					mantisaFinal = mantissa_sumR_check[23:1];// 11.xxx ,,, o 10.xxx ,,, => 1.1xxx ó 1.0xxx
-					exp_sumR_final = exp_sumR +1'b1; //Se suma 1 al exponente
+					begin// 11.xxx ,,, o 10.xxx ,,, => 1.1xxx ó 1.0xxx
+					mantisaFinal = mantissa_sumR_check[23:1];
+					exp_sumR_final = exp_sumR +8'd1; //Se suma 1 al exponente
 					end
 				 //también serviría el corrimiento a izquierda??
 		endcase
@@ -136,14 +145,9 @@ module adderunit (dataA, dataB, dataR);
 	
 	// Process: operand validator and result normalizer and assembler
 	always_comb begin
-		dataR[31] = mantissa_sumR_check[25];//*********
-		if (mantissa_sumR_check[23]) begin
-			dataR[30:23] = exp_sumR + 8'd1;
-			dataR[22:0] = mantissa_sumR_check[23:1];
-		end else begin
-			dataR[30:23] = exp_sumR;
-			dataR[22:0] = mantissa_sumR_check[22:0];
-		end
+		dataR[31] = mantissa_sumR[25];//*********
+		dataR[30:23] = exp_sumR_final;
+		dataR[22:0] = mantisaFinal;
 	end
 endmodule
 
@@ -164,7 +168,7 @@ module testbench();
 	
 	logic [1:0] aux_exp;
 
-	localparam delay = 20ps;
+	localparam delay = 1ns;
 	
 	// Instanciar objeto
 	adderunit au (dataA, dataB, dataR);
@@ -172,6 +176,25 @@ module testbench();
 	initial begin
 		dataA = 32'b01000000011000000000000000000000;
 		dataB = 32'b01000000010000000000000000000000;
+		#delay;
+		dataA = 32'h40B00000;
+		dataB = 32'h40880000;
+		#delay;
+		dataA = 32'h40E00000;
+		dataB = 32'hC0880000;
+		#delay;
+		dataA = 32'h40E00000;
+		dataB = 32'hC0E01000;
+		#delay;
+		dataA = 32'h40E00000;
+		dataB = 32'hC0E00001;
+		#delay;
+		dataA = 32'h40E00000;
+		dataB = 32'h43FA0000;
+		#delay;
+		dataA = 32'h40E00000;
+		dataB = 32'hC0E00002;
+		#delay;
 		$stop;
 	end
 	
