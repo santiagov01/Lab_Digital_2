@@ -22,16 +22,17 @@ module peripherals (clk, reset, enter, inputdata,
 	logic [1:0] dataoutput_i;
 	always_ff @(posedge reset, posedge clk) begin
 		if (reset) begin
-			datainput_i <= 4'b0;
-			dataoutput_i <= 2'b0;
+			datainput_i <= 4'b0111;
+			dataoutput_i <= 2'b11;
 		end else if (loaddata) begin
-			if (datainput_i < 8 && enterpulse) 
-				datainput_i <= datainput_i + 4'b1;
+//			if (datainput_i < 8 && enterpulse) 
+			if((datainput_i >= 0 && datainput_i < 8) && enterpulse)
+				datainput_i <= datainput_i - 4'b1;
 		end else if (enterpulse) begin
-			dataoutput_i <= dataoutput_i + 2'b1;
+			dataoutput_i <= dataoutput_i - 2'b1;
 		end
 	end
-	assign inputdata_ready = (datainput_i == 4'd8) ? 1'b1 : 1'b0;
+	assign inputdata_ready = (datainput_i == 4'd15) ? 1'b1 : 1'b0;
 	
 	// Internal signals and module instantiation for getting operands
 	peripheral_getoperands go0 (clk, reset, inputdata, enterpulse, datainput_i, dataA, dataB);	
@@ -47,15 +48,15 @@ module peripherals (clk, reset, enter, inputdata,
 		
 		if (loaddata) begin
 			//Se halla el complemento a 2 en la parte para trabajar con valores al reves
-			valuestoshowondisps[11:8] = ~({2'b0, datainput_i[1:0]}) + 1'b1; 
+			valuestoshowondisps[11:8] = ({2'b0, datainput_i[1:0]}) ; 
 			valuestoshowondisps[7:0] = inputdata;
-			if (datainput_i[2] == 0) // Cuando pasa del cuarto dato
+			if (datainput_i[2] != 0) // Cuando pasa del cuarto dato
 				valuestoshowondisps[15:12] = 4'b1010;	// A0 - A3
 			else 
 				valuestoshowondisps[15:12] = 4'b1011;	// B0 - B3
 		end else begin
 			valuestoshowondisps[15:12] = 4'b1100; // R -> resultado 
-			valuestoshowondisps[11:8] = ~({2'b0, dataoutput_i}) +1'b1;
+			valuestoshowondisps[11:8] = ({2'b0, dataoutput_i});
 			valuestoshowondisps[7:0] = dataR[dataoutput_i*8 +: 8]; //aumenta cada 8 bits
 		end
 	end
