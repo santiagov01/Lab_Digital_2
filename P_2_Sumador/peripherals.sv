@@ -46,7 +46,8 @@ module peripherals (clk, reset, enter, inputdata,
 		valuestoshowondisps = 16'b0;
 		
 		if (loaddata) begin
-			valuestoshowondisps[11:8] = {2'b0, datainput_i[1:0]};
+			//Se halla el complemento a 2 en la parte para trabajar con valores al reves
+			valuestoshowondisps[11:8] = ~({2'b0, datainput_i[1:0]}) + 1'b1; 
 			valuestoshowondisps[7:0] = inputdata;
 			if (datainput_i[2] == 0) // Cuando pasa del cuarto dato
 				valuestoshowondisps[15:12] = 4'b1010;	// A0 - A3
@@ -54,7 +55,7 @@ module peripherals (clk, reset, enter, inputdata,
 				valuestoshowondisps[15:12] = 4'b1011;	// B0 - B3
 		end else begin
 			valuestoshowondisps[15:12] = 4'b1100; // R -> resultado 
-			valuestoshowondisps[11:8] = {2'b0, dataoutput_i};
+			valuestoshowondisps[11:8] = ~({2'b0, dataoutput_i}) +1'b1;
 			valuestoshowondisps[7:0] = dataR[dataoutput_i*8 +: 8]; //aumenta cada 8 bits
 		end
 	end

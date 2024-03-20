@@ -29,7 +29,8 @@ module adderunit (dataA, dataB, dataR);
 	
 	logic special_case = 0; //
 	
-	
+	logic [30:0] inf;
+	logic [30:0] nan;
 //***********************************************
 //				    ADD EXPONENT                    *
 //***********************************************
@@ -95,11 +96,49 @@ always_comb begin
 	special_mantisa = 0;
 	special_exp = 0;
 	sign_special = 0;
+	//Asignar valor infinito. (No estoy mirando signo, solo mantisa y exponente porque son lo mismo)
+	inf = {8'd1,23'd0}; //1111111000000000000000000000
+	//primer caso especial
 	if(dataA[31] ^ dataB[31] & dataA[30:0] == dataB[30:0]) begin
 		special_case = 1;
 		special_mantisa = 23'd0;
 		special_exp = 8'd0;
 		sign_special = 0;
+		end
+		
+	//segundo caso esp
+	
+	//cuando es NaN alguno de los dos, el resultado es NaN
+	else if(dataA[30:23] == 8'd1 & dataA[22:0] != 23'd0 || dataB[30:23] == 8'd1 & dataB[22:0] != 23'd0 ) begin
+		special_mantisa = 23'd1; //mantisa en 1
+		special_exp = 8'd1;//exponente en 1
+		sign_special = 1;
+		end
+		
+	//tercer caso esp
+	else if(dataA[30:0] == inf & dataB[30:0] == inf) //Si A y B es infinito
+		//resultado puede ser inf con mismo signo o NaN
+		begin
+			if(dataA[31] == dataB[31]) //infinito mismo signo
+				begin 
+				special_mantisa = 23'd0; //mantisa en 0
+				special_exp = 8'd1;//exponente en 1
+				sign_special = dataB[31];
+				end
+			else begin //inf - inf = NaN
+				special_mantisa = 23'd1;
+				special_exp = 8'd1;//exponente en 1
+				sign_special = 1;
+			end
+		end
+	//cuarto caso esp
+	//si dataA es infinito y el exponente de B es diferente a 1111111 ( diferente a inifinto o NaN)....
+	else if(dataA[30:0] == inf & dataB [30:23] != 8'd1) // Infinito + un valor cualquiera
+		begin
+			if(dataA[31])
+				special_mantisa = 23'd0; //mantisa en 0
+				special_exp = 8'd1;//exponente en 1
+				sign_special = dataA[31];
 		end
 	else
 		special_case = 0;
