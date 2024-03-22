@@ -1,4 +1,4 @@
-// **********************
+	// **********************
 // Adder Unit Module
 // **********************
 module adderunit (dataA, dataB, dataR);
@@ -34,14 +34,7 @@ module adderunit (dataA, dataB, dataR);
 	logic [31:0] Rspecial = 0;
 	logic ceroA, ceroB, infApos, infBpos, infAneg, infBneg, NaNA, NaNB;
 	
-//	assign ceroA = (dataA[30:23]==0) & (dataA[22:0]==0);
-//	assign ceroB = (dataB[30:23]==0) & (dataB[22:0]==0);
-//	assign infApos = (dataA[31]==0) & (dataA[30:23] == 8'b11111111) & (dataA[22:0] == 0);
-//	assign infBpos = (dataB[31]==0) & (dataB[30:23] == 8'b11111111) & (dataB[22:0] == 0);
-//	assign infAneg = (dataA[31]==1) & (dataA[30:23] == 8'b11111111) & (dataA[22:0] == 0);
-//	assign infBneg = (dataA[31]==1) & (dataB[30:23] == 8'b11111111) & (dataB[22:0] == 0);
-//	assign NaNA = (dataA[30:23] == 8'b11111111) & (dataA[22:0] != 0);
-//	assign NaNB = (dataB[30:23] == 8'b11111111) & (dataB[22:0] != 0);
+
 //***********************************************
 //				    ADD EXPONENT                    *
 //***********************************************
@@ -122,17 +115,11 @@ always_comb begin
 	 
 	if((dataA[31] ^ dataB[31]) & (dataA[30:0] == dataB[30:0]) & (dataA[30:23] != 8'b11111111) & (dataB[30:23] != 8'b11111111)) begin
 		special_case = 1;
-		special_mantisa = 23'b0;
-		special_exp = 8'b0;
-		sign_special = 0;
-		
 		Rspecial = 32'h00000000;
 		end
 		else if (ceroA & ceroB) begin
 		special_case = 1;
-		special_mantisa = 23'b0;
-		special_exp = 8'b0;
-		sign_special = 0;
+
 		Rspecial = 32'h00000000;
 		end 
 		else if (ceroA) begin
@@ -147,23 +134,17 @@ always_comb begin
 		
 	//caso NaN
 	else if( (infApos & infBneg) || (infAneg & infBpos))begin
-		special_mantisa = 23'b1; //mantisa en 1
-		special_exp = 8'b1;//exponente en 1
-		sign_special = 1;	
+
 		special_case = 1;
 		Rspecial = 32'hFFFFFFFF;
 		end
 	else if(NaNA) begin
-		special_mantisa = 23'b1; //mantisa en 1
-		special_exp = 8'b1;//exponente en 1
-		sign_special = 1;	
+
 		special_case = 1;
 		Rspecial = dataA;
 		end
 		else if(NaNB) begin
-		special_mantisa = 23'b1; //mantisa en 1
-		special_exp = 8'b1;//exponente en 1
-		sign_special = 1;	
+
 		special_case = 1;
 		Rspecial = dataB;
 		end		
@@ -171,63 +152,17 @@ always_comb begin
 	else if( (infApos & ~infBpos) || (~infApos & infBpos) || (infApos & infBpos))begin //Infinito positivo
 			special_case = 1;
 			Rspecial = 32'h7F800000;
-			special_mantisa = 23'b0; //mantisa en 0
-			special_exp = 8'b1;//exponente en 1
-			sign_special = 0;
+
 		end
 	else if  ( (infAneg & ~infBneg) || (~infAneg & infBneg) || (infAneg & infBneg))begin //Infinito negativo
 			special_case = 1;
 			Rspecial = 32'hFF800000;
-			special_mantisa = 23'b0; //mantisa en 0
-			special_exp = 8'b1;//exponente en 1
-			sign_special = 1;
+
 		end
 		else
 		special_case = 0;
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	//cuando es NaN alguno de los dos, el resultado es NaN
-//	else if(dataA[30:23] == 8'd1 & dataA[22:0] != 23'd0 || dataB[30:23] == 8'd1 & dataB[22:0] != 23'd0 ) begin
-//		special_mantisa = 23'd1; //mantisa en 1
-//		special_exp = 8'd1;//exponente en 1
-//		sign_special = 1;
-//		end
-//		
-//	//tercer caso esp
-//	else if(dataA[30:0] == inf & dataB[30:0] == inf) //Si A y B es infinito
-//		//resultado puede ser inf con mismo signo o NaN
-//		begin
-//			if(dataA[31] == dataB[31]) //infinito mismo signo
-//				begin 
-//				special_mantisa = 23'd0; //mantisa en 0
-//				special_exp = 8'd1;//exponente en 1
-//				sign_special = dataB[31];
-//				end
-//			else begin //inf - inf = NaN
-//				special_mantisa = 23'd1;
-//				special_exp = 8'd1;//exponente en 1
-//				sign_special = 1;
-//			end
-//		end
-//	//cuarto caso esp
-//	//si dataA es infinito y el exponente de B es diferente a 1111111 ( diferente a inifinto o NaN)....
-//	else if(dataA[30:0] == inf & dataB [30:23] != 8'd1) // Infinito + un valor cualquiera
-//		begin
-//			if(dataA[31])
-//				special_mantisa = 23'd0; //mantisa en 0
-//				special_exp = 8'd1;//exponente en 1
-//				sign_special = dataA[31];
-//		end
-//	else
-//		special_case = 0;
+
 end
 
 //if( Infinito...., - infitino, nan...)
@@ -281,7 +216,7 @@ end
 						23'b000000000000000000001??: desplz = 21;
 						23'b0000000000000000000001?: desplz = 22;
 						23'b00000000000000000000001: desplz = 23;
-						default:  desplz = 23; //falta revisar el caso donde todo es cero, caso especial ?						
+						default:  desplz = 24; //falta revisar el caso donde todo es cero, caso especial ?						
 					endcase
 					mantisaFinal = frac << desplz;
 					exp_sumR_final= exp_sumR - desplz;
@@ -350,32 +285,32 @@ module testbench();
 		dataA = 32'h40E00000;
 		dataB = 32'hC0880000;
 		#delay;
-		dataA = 32'h40E00000;
+		dataA = 32'h40E00000;//B5000000
 		dataB = 32'hC0E01000;
 		#delay;
-		dataA = 32'h40E00000;
+		dataA = 32'h40E00000;//B5000000
 		dataB = 32'hC0E00001;
 		#delay;
-		dataA = 32'h40E00000;
+		dataA = 32'h40E00000;//C3F68000
 		dataB = 32'h43FA0000;
 		#delay;
-		dataA = 32'h40E00000;
+		dataA = 32'h40E00000;//B5800000
 		dataB = 32'hC0E00002;
 		#delay;
 		dataA = 32'h00000000;
 		dataB = 32'hC0E00002;
 		#delay;
-		dataA = 32'h40E00002;
+		dataA = 32'h40E00002; //0000000
 		dataB = 32'hC0E00002;
 		#delay;
 		
-		dataA = 32'h7F7FFFFF;//7F800000
+		dataA = 32'h7F7FFFFF;//7F800000  Infinito
 		dataB = 32'h7F000400;
 		#delay;
 		dataA = 32'h7F800000;//7F800000
 		dataB = 32'h3C000400;
 		#delay;
-		dataA = 32'hFF800000;//FF800000
+		dataA = 32'hFF800000;//FF800000 -Infinito
 		dataB = 32'h7C400400;
 		#delay;
 		dataA = 32'hFF800000;//FF800000
@@ -388,14 +323,44 @@ module testbench();
 		dataA = 32'h7F800000; //FFFFFFFF
 		dataB = 32'hFF800000;
 		#delay;
-		dataA = 32'h00000000;
+		dataA = 32'h00000000; //Cero
 		dataB = 32'h00000000;
 		#delay;
-		dataA = 32'h00400000;
+		dataA = 32'h00400000; //Num + cero
 		dataB = 32'h00000000;
 		#delay;
 		dataA = 32'h00008000;
 		dataB = 32'h00000000;
+		#delay;
+		dataA = 32'hC0E00000;//C1600800
+		dataB = 32'hC0E01000;
+		#delay;
+		dataA = 32'hC0FFFFFF;//C17008F0
+		dataB = 32'hC0E011E0;
+		#delay;
+		dataA = 32'h6FFFFFFF;//6FFFFFFF
+		dataB = 32'hDFE011E0;
+		#delay;
+		dataA = 32'h00FFFFFF;//DFF023C2
+		dataB = 32'hDFF023C2;
+		#delay;
+		dataA = 32'h40FFFFFF;//417FFFFE
+		dataB = 32'h40FFFFFE;
+		#delay;
+		dataA = 32'hC0FFFFFF;//C1780000
+		dataB = 32'hC0F00000;
+		#delay;
+		dataA = 32'hC0FC0000;//C1760000
+		dataB = 32'hC0F00000;
+		#delay;
+		dataA = 32'hC7FC0000;//C7FC03A0
+		dataB = 32'hC0E80000;
+		#delay;
+		dataA = 32'hE0740000;//E0EC0000
+		dataB = 32'hE0640000;
+		#delay;
+		dataA = 32'hC0740000;//C0F80000
+		dataB = 32'hC07C0000;
 		#delay;
 		$stop;
 	end
