@@ -1,0 +1,38 @@
+.global _start
+_start:
+	
+	.equ N, 30
+
+LDR R0, =POS
+MOV R1, #N
+BL Fibo
+
+Final:
+B Final
+
+Fibo:
+    MOV R2, #0         // Valor inicial de Fibonacci
+    MOV R3, #1         // Segundo valor de Fibonacci
+    STR R2, [R0], #4   // Almacenamos el primer valor de Fibonacci
+    STR R3, [R0], #4   // Almacenamos el segundo valor de Fibonacci
+    SUB R1, R1, #2     // Decrementamos N por 2 (ya que ya hemos calculado los dos primeros valores)
+
+Loop:
+    CMP R1, #0         // Comparamos si N es igual a cero
+    BEQ EndLoop        // Si es cero, salimos del bucle
+
+    ADD R4, R2, R3     // Calculamos el siguiente valor de Fibonacci sumando los dos últimos
+	CMP R4, R0         // Comparamos si R4 es igual a R0
+	STR R4, [R0], #4   // Almacenamos el nuevo valor de Fibonacci
+    BEQ EndLoop        // Si es cero, salimos del bucle
+    
+    MOV R2, R3         // Actualizamos el primer valor de Fibonacci con el segundo
+    MOV R3, R4         // Actualizamos el segundo valor de Fibonacci con el nuevo valor
+    SUBS R1, R1, #1    // Decrementamos N
+    B Loop             // Volvemos al inicio del bucle
+
+EndLoop:
+    MOV PC, LR
+
+//N: .ds.l N 
+POS: .ds.l   11
