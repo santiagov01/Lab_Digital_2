@@ -7,6 +7,8 @@ _start:
 LDR R0, =FIBO //Direccion de memoria donde se guarda la serie
 MOV R1, #FIMAX //40
 
+LDR R10, =ORDER
+LDR R10, [R10]
 
 LDR R7, =N //Cargo dirrecion de N
 LDR R7, [R7] //Cargar en R7 lo que hay en la dirrecion N
@@ -15,10 +17,22 @@ BL Range_rev //Revisar Rango
 
 BL Fibo
 //En estos momentos no necesito usar R0,R1,R2,R3,R4
-LDR R0, =FIMAX
+
+LDR R0, =POS
 MOV R2, #0 //Contador i, for externo
-MOV R3, #0 //Contador j, for anidado
+MOV R8, R7
+SUB R7, R7, #1 //N-1
 BL LoopOrdenar
+
+//cambiar***
+LDR R7, =N //Cargo dirrecion de N
+LDR R7, [R7] //Cargar en R7 lo que hay en la dirrecion N
+LDR R1, =FIBO
+LDR R2, =SORTEDVALUES //
+MOV R3, #0 //Valor de la posicion
+MOV R4, #0 //Valor de la serie
+MOV R5, #0
+BL ExtraerFinal
 BL Final
 Range_rev:
 	CMP R7, #5 
@@ -52,8 +66,8 @@ Loop:
     ADD R4, R2, R3     // Calculamos el siguiente valor de Fibonacci sumando los dos últimos
 	//CMP R4, R0         // Comparamos si R4 es igual a R0
 	STR R4, [R0], #4   // Almacenamos el nuevo valor de Fibonacci
-    BEQ EndLoop        // Si es cero, salimos del bucle
-    
+    //BEQ EndLoop        // Si es cero, salimos del bucle
+	
     MOV R2, R3         // Actualizamos el primer valor de Fibonacci con el segundo
     MOV R3, R4         // Actualizamos el segundo valor de Fibonacci con el nuevo valor
     SUBS R1, R1, #1    // Decrementamos N
@@ -63,19 +77,79 @@ EndLoop:
     MOV PC, LR
 
 LoopOrdenar:
-	//R2 => i, R3 => j
+	//R2 => i, R3 => j R7=> N
+	
+	
 	CMP R2, R7
-	BGT EndLoopOrdenar //Si (i) R2  > N
-	ADD R2, R2, #1
-	//STR R2, [R0], #4
-	B LoopOrdenar
+	BGE EndLoopOrdenar //Si (i) R2  > N
+	LDR R8, =N //Cargo dirrecion de N
+	LDR R8, [R8]
+	MOV R3, #0
+	
+	SUB R8, R8, #1
+	SUB R8, R8, R2 //N-1 - i
 
+	B LoopAnidado
+	
+LoopAnidado:	
+	CMP R3, R8
+	BGE EndLoopAnidado	
+	//Extraer de la memoria actual y siguiente (V[J] V[J+1]
+	LSL R9, R3, #2
+	LDR R5, [R0, R9] //V[j]
+	ADD R9, R9, #4
+	LDR R6, [R0, R9]  //V[j+1]
+	
+	ADD R3, R3, #1 //j = j+1
+	CMP R10, #0
+	BNE Else_Descendente
+	CMP R5, R6
+	BLT Else_Descendente
+	
+	//If Ascendente, ORDER = 0 => Intercambio
+	STR R5, [R0, R9] //v[j+1] = temp (anterior)
+	SUB R9, R9, #4
+	STR R6, [R0, R9]
+	
+	
+	B LoopAnidado
+Else_Descendente:
+	CMP R5, R6
+	BGE LoopAnidado
+	STR R5, [R0, R9] //v[j+1] = temp (anterior)
+	SUB R9, R9, #4
+	STR R6, [R0, R9]
+	B LoopAnidado
+EndLoopAnidado:
+	ADD R2, R2, #1
+	B LoopOrdenar
 EndLoopOrdenar:
 	MOV PC, LR
+
+ExtraerFinal:
+//R0 => POS
+	//LDR R1, =FIBO
+//LDR R2, =SORTEDVALUES //
+//MOV R3, #0 //Valor de la posicion
+//MOV R4, #0 //Valor de la serie
+	CMP R5, R7
+	
+	BGE Final
+	LDR R3, [R0], #4
+	SUB R3, R3, #1
+	LSL R3, R3, #2
+	LDR R4, [R1, R3]
+	
+	STR R4, [R0], #4
+	
+	
+	
+	ADD R5, R5, #1
+
 	
 	.data
 FIBO: .ds.l FIMAX //Guardar memoria para la serie con FIMAX (40) términos
-N: .dc.l 10 //Cantidad de terminos solicitdos (entre 5 y 30)
+N: .dc.l 5 //Cantidad de terminos solicitdos (entre 5 y 30)
 POS: .dc.l   2,9,5,35,4
 ORDER: .dc.l 1
 SORTEDVALUES: .ds.l MAXN
