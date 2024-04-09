@@ -14,9 +14,12 @@ int main()
 // ORDENAR LISTA DE TERMINOS SOLICITADOS
 //-------------------------------------------------------------
     for(int i = 0; i < N-1; i++){
-        for(int j = 0; j < N-i-1; j++){
+        int limite_anidado =  N-i-1
+        for(int j = 0; j < limite_anidado; j++){
             //ORDENAR ASCENDENTE
-            if (ORD == 0 && vector2[j] > vector2[j + 1]) {//Reviso cada item de la lista
+            int actual = vector2[j]
+            int siguiente = vector2[j + 1]
+            if (ORD == 0 && actual > siguiente) {//Reviso cada item de la lista
             int temp = vector2[j];//temporal
             vector2[j] = vector2[j + 1]; // intercambio
             vector2[j + 1] = temp;
