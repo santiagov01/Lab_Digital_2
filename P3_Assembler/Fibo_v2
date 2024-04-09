@@ -1,0 +1,81 @@
+.global _start
+_start:
+	
+	.equ MAXN, 30 //Maximo de terminos solicitados
+	.equ FIMAX, 40 //Cantidad de terminos a generar
+
+LDR R0, =FIBO //Direccion de memoria donde se guarda la serie
+MOV R1, #FIMAX //40
+
+
+LDR R7, =N //Cargo dirrecion de N
+LDR R7, [R7] //Cargar en R7 lo que hay en la dirrecion N
+
+BL Range_rev //Revisar Rango
+
+BL Fibo
+//En estos momentos no necesito usar R0,R1,R2,R3,R4
+LDR R0, =FIMAX
+MOV R2, #0 //Contador i, for externo
+MOV R3, #0 //Contador j, for anidado
+BL LoopOrdenar
+BL Final
+Range_rev:
+	CMP R7, #5 
+	BLT Abort //N < 5?
+	CMP R7, #30
+	BGT Abort //N > 30
+	
+	MOV PC, LR //En caso de que todo este bien, continue
+
+Abort:
+	LDR R1, =0xA5A5A5A5
+	STR R1, [R0]
+	B Final
+Final:
+B Final
+
+//R2 => Anterior
+//R3 => Actual
+Fibo:
+    MOV R2, #0         // Valor inicial de Fibonacci
+    MOV R3, #1         // Segundo valor de Fibonacci
+    STR R2, [R0], #4   // Almacenamos el primer valor de Fibonacci en [R0]
+	//R0 = R0 + 4. Se actualiza después
+    STR R3, [R0], #4   // Almacenamos el segundo valor de Fibonacci
+    SUB R1, R1, #2     // Decrementamos N por 2 (ya que ya hemos calculado los dos primeros valores)
+
+Loop:
+    CMP R1, #0         // Comparamos si N es igual a cero
+    BEQ EndLoop        // Si es cero, salimos del bucle
+
+    ADD R4, R2, R3     // Calculamos el siguiente valor de Fibonacci sumando los dos últimos
+	//CMP R4, R0         // Comparamos si R4 es igual a R0
+	STR R4, [R0], #4   // Almacenamos el nuevo valor de Fibonacci
+    BEQ EndLoop        // Si es cero, salimos del bucle
+    
+    MOV R2, R3         // Actualizamos el primer valor de Fibonacci con el segundo
+    MOV R3, R4         // Actualizamos el segundo valor de Fibonacci con el nuevo valor
+    SUBS R1, R1, #1    // Decrementamos N
+    B Loop             // Volvemos al inicio del bucle
+
+EndLoop:
+    MOV PC, LR
+
+LoopOrdenar:
+	//R2 => i, R3 => j
+	CMP R2, R7
+	BGT EndLoopOrdenar //Si (i) R2  > N
+	ADD R2, R2, #1
+	//STR R2, [R0], #4
+	B LoopOrdenar
+
+EndLoopOrdenar:
+	MOV PC, LR
+	
+	.data
+FIBO: .ds.l FIMAX //Guardar memoria para la serie con FIMAX (40) términos
+N: .dc.l 10 //Cantidad de terminos solicitdos (entre 5 y 30)
+POS: .dc.l   2,9,5,35,4
+ORDER: .dc.l 1
+SORTEDVALUES: .ds.l MAXN
