@@ -104,7 +104,7 @@ LoopAnidado:
 	CMP R10, #0
 	BNE Else_Descendente
 	CMP R5, R6
-	BLT Else_Descendente
+	BLT LoopAnidado //Si no es mayor y no es descendente, subir al loop nuevamente
 	
 	//If Ascendente, ORDER = 0 => Intercambio
 	STR R5, [R0, R9] //v[j+1] = temp (anterior)
@@ -152,5 +152,5 @@ ExtraerFinal:
 FIBO: .ds.l FIMAX //Guardar memoria para la serie con FIMAX (40) términos
 N: .dc.l 5 //Cantidad de terminos solicitdos (entre 5 y 30)
 POS: .dc.l   2,9,5,35,4
-ORDER: .dc.l 1
+ORDER: .dc.l 0
 SORTEDVALUES: .ds.l MAXN
