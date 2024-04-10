@@ -12,10 +12,13 @@ LDR R10, [R10]
 LDR R7, =N //Cargo dirrecion de N
 LDR R7, [R7] //Cargar en R7 lo que hay en la dirrecion N
 
+LDR R5, =SORTEDVALUES
 MOV R2, #0 //Contador para revisar valores de posiciones solicitadas
+
 BL Range_rev //Revisar Rango
 LDR R3, =POS
 BL Loop_rev //Revisar lista
+
 BL Fibo
 //En estos momentos no necesito usar R0,R1,R2,R3,R4
 
@@ -39,7 +42,11 @@ Range_rev:
 	CMP R7, #5 
 	BLT Abort //N < 5?
 	CMP R7, #30
-	BGT Abort //N > 30	
+	BGT Abort //N > 30
+	CMP R10, #1
+	BGT Abort
+	CMP R10, #0
+	BLT Abort
 	MOV PC, LR //En caso de que todo este bien, continue
 Loop_rev:
 	CMP R2, R7
@@ -56,7 +63,7 @@ EndLoop_rev:
 	MOV PC, LR
 Abort:
 	LDR R1, =0xA5A5A5A5
-	STR R1, [R0]
+	STR R1, [R5]
 	B Final
 Final:
 	B Final
@@ -114,7 +121,7 @@ LoopAnidado:
 	
 	ADD R3, R3, #1 //j = j+1
 	CMP R10, #0
-	BNE Else_Descendente
+	BNE Else_Descendente //Si es ORD = 1 se va al else
 	CMP R5, R6
 	BLT LoopAnidado
 	
@@ -122,8 +129,7 @@ LoopAnidado:
 	STR R5, [R0, R9] //v[j+1] = temp (anterior)
 	SUB R9, R9, #4
 	STR R6, [R0, R9]
-	
-	
+		
 	B LoopAnidado
 Else_Descendente:
 	CMP R5, R6
@@ -160,8 +166,8 @@ ExtraerFinal:
 
 	
 	.data
-FIBO: .ds.l FIMAX //Guardar memoria para la serie con FIMAX (40) términos
-N: .dc.l 5 //Cantidad de terminos solicitdos (entre 5 y 30)
-POS: .dc.l   2,10,5,35,4
-ORDER: .dc.l 0
 SORTEDVALUES: .ds.l MAXN
+FIBO: .ds.l FIMAX //Guardar memoria para la serie con FIMAX (40) términos
+N: .dc.l 10 //CAidad de terminos solicitdos (entre 5 y 30)
+POS: .dc.l  50, 15, 40, 39, 6, 33, 12, 23, 20, 6
+ORDER: .dc.l -2
