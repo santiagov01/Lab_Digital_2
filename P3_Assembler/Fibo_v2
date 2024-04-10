@@ -140,11 +140,12 @@ ExtraerFinal:
 	LSL R3, R3, #2
 	LDR R4, [R1, R3]
 	
-	STR R4, [R0], #4
+	STR R4, [R2], #4
 	
 	
 	
 	ADD R5, R5, #1
+	B ExtraerFinal
 
 	
 	.data
