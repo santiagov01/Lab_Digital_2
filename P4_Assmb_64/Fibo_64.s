@@ -8,6 +8,11 @@ MOV SP, #0 //Es totalmente importante inicializar en 0 el SP
 LDR R1, =FIBO
 
 BL Fibo
+LDR R0, =N //L
+LDR R0, [R0]
+LDR R1, =SORTEDVALUES//Direcccion
+LDR R2, =ORDER//Orden
+LDR R2, [R2]
 BL Sort
 
 B Final
@@ -69,7 +74,56 @@ Out_Fibo:
 	ADD SP, SP, #4
 	MOV PC, LR //Sale de funcion Fibo
 Sort:
+	//R0 => L    R1= Dir    R2 => Order R3 => i
+	MOV R3,#0 //Inicializar i
+	//SUB R4, R0, #1 //Limite externo
+	B LoopExterno
+LoopExterno:
+	CMP R3, R0 //
+	BGE EndLoopOrdenar //Si (i) R3 > N
+	PUSH{R3,R0}//Guardar i,L en stack
+	
+	SUB R0, R0, R3 //limite anidado
+	SUB R0, R0, #1 //N- 1 - i
+	
+	MOV R3, #0 //Inicializar j	
+	B LoopAnidado
+	
+LoopAnidado:	
+	CMP R3, R0
+	BGE EndLoopAnidado
+	
+	//Extraer de la memoria actual y siguiente (V[J] V[J+1]
+	LSL R0, R3, #2 //j*4
+	LDR R0, [R1, R0] //V[j] Actual
+	ADD R3, R3, #1 //j=j+1
+	LSL R12, R3, #2//(j+1)*4
+	LDR R12, [R0, R12]  //V[j+1] Siguiente
+
+	CMP R2, #0 //Order 
+	BNE Else_Descendente //Si es ORD = 1 se va al else
+	CMP R0, R12 //Comparar actual y siguiente
+	BLT LoopAnidado
+	
+	//If Ascendente, ORDER = 0 => Intercambio
+	STR R5, [R0, R9] //v[j+1] = temp (anterior)
+	SUB R9, R9, #4
+	STR R6, [R0, R9]
+		
+	B LoopAnidado
+Else_Descendente:
+	CMP R5, R6
+	BGE LoopAnidado
+	STR R5, [R0, R9] //v[j+1] = temp (anterior)
+	SUB R9, R9, #4
+	STR R6, [R0, R9]
+	B LoopAnidado
+EndLoopAnidado:
+	ADD R2, R2, #1
+	B LoopOrdenar
+EndLoopOrdenar:
 	MOV PC, LR
+
 Final:
 	B Final
 	
