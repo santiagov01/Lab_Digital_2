@@ -1,7 +1,7 @@
 .global _start
 _start:
 	.equ MAXN, 50 //Maximo de terminos solicitados
-	.equ FIMAX, 90 //Cantidad de terminos a generar
+	.equ FIMAX, 92 //Cantidad de terminos a generar
 	
 LDR R2, =ORDER//Orden
 LDR R2, [R2]
@@ -46,7 +46,7 @@ Loop_rev:
 	LDR R12, [R3], #4 //Cargar de vector POS
 	CMP R12, #1
 	BLO Abort
-	CMP R12, #90
+	CMP R12, #92
 	BGT Abort
 	ADD R2,R2, #1
 	B Loop_rev
@@ -69,8 +69,8 @@ Fibo:
 	STR R3, [R1], #4
 	//Segundo termino
 	ADD R2, R2, #1
-	STR R3, [R1], #4
-	STR R2, [R1], #4 //Guardar segundo termino de serie
+	STR R2, [R1], #4
+	STR R3, [R1], #4 //Guardar segundo termino de serie
 	//Resto terminos de la serie
 	SUB R0, R0, #2
 	
@@ -87,20 +87,20 @@ LoopFibo:
 	//LR
 	//M
 	//DIR	
-	LDR R0, [R1, #-12] //Extraer posicion anterior
-	LDR R1, [R1, #-16]
+	LDR R0, [R1, #-16] //LSBExtraer posicion anterior
+	LDR R1, [R1, #-12] //MSB
 
 	BL ADD64
 	
-	MOV R3, R1
+	MOV R3, R1 //Actualizar numero
 	MOV R2, R0
 	
-	LDR R1, [SP]
+	LDR R1, [SP] //Cargo M y Dir
 	LDR R0, [SP, #4]
 	ADD SP, SP, #8
 	
-	STR R3, [R1], #4
 	STR R2, [R1], #4
+	STR R3, [R1], #4
 	
 	SUB R0,R0, #1
 	
@@ -219,8 +219,8 @@ Final:
 	B Final
 	
 	.data
-SORTEDVALUES: .ds.l MAXN*2
 FIBO: .ds.l FIMAX*2 //Guardar memoria para la serie con FIMAX (90) términos
-N: .dc.l 10 //CAidad de terminos solicitdos (entre 10 Y 50)
-POS: .dc.l  9, 15, 40, 39, 6, 33, 12, 23, 20, 6
-ORDER: .dc.l 0  
+SORTEDVALUES: .ds.l MAXN*2
+N: .dc.l 15 //CAidad de terminos solicitdos (entre 10 Y 50)
+POS: .dc.l  92,12,52,54,52,1,59,80,60,65,5,9,4,33,59
+ORDER: .dc.l 1 
