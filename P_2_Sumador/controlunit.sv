@@ -39,3 +39,39 @@ module controlunit (clk, reset, loaddata, inputdata_ready);
 		endcase
 endmodule
 
+module testbench_control();
+	/* Declaración de señales y variables internas */
+
+
+	localparam delay = 20ps;
+	logic  clk, reset;
+	logic  loaddata;
+	logic inputdata_ready;
+	// Instanciar objeto
+	controlunit cu(clk, reset, loaddata, inputdata_ready);
+	// Simulación
+	initial begin
+		clk = 0;
+		reset = 1;
+		#delay
+		reset = 0;
+		#delay
+		inputdata_ready = 1;
+		#delay
+		inputdata_ready = 0;
+		#delay
+		inputdata_ready = 1;
+		#delay
+		inputdata_ready = 0;
+		#delay
+		inputdata_ready = 1;
+		#delay
+		inputdata_ready = 0;
+		#delay
+		$stop;
+	end
+	
+	// Proceso para generar el reloj
+	always #(delay/2) clk = ~clk;
+endmodule
+
