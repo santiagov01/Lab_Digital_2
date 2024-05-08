@@ -8,7 +8,7 @@ module regfile(input logic clk,
 					output logic [31:0] rd1, rd2);
 
 	// Internal signals
-	logic [31:0] rf[14:0]; //No son 16 registro porque hace falta el R15 
+	logic [31:0] rf[14:0]; //No son 16 registros porque hace falta el R15 
 									//(Primero se le tiene que sumar 8) 	
 	// Three ported register file
 	// Write third port on rising edge of clock
