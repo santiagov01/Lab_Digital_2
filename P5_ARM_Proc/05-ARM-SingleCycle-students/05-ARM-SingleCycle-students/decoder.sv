@@ -7,16 +7,16 @@ module decoder(input logic [1:0] Op,
 					output logic [1:0] FlagW,
 					output logic PCS, RegW, MemW,
 					output logic MemtoReg, ALUSrc,
-					output logic [1:0] ImmSrc, RegSrc, ALUControl
+					output logic [1:0] ImmSrc, RegSrc, ALUControl,
+					output logic NoWrite);
 					//PONER UNA SALIDA MÁS: NOWRITE
-					//output logic NoWrite
-					);
+					
 					
 	// Internal signals
 	logic [9:0] controls;
 	logic Branch, ALUOp;
 
-	// Main Decoder
+	//************Main Decoder*******************************+
 	always_comb
 		casex(Op)
 											// Data-processing immediate
@@ -35,9 +35,9 @@ module decoder(input logic [1:0] Op,
 		
 	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
 
-	// ALU Decoder
-	always_comb
-		//NoWrite <= 0
+	//*************ALU Decoder********************+
+	always_comb begin
+		NoWrite = 1'b0;
 		if (ALUOp) begin // which DP Instr?
 			case(Funct[4:1])
 				4'b0100: ALUControl = 2'b00; // ADD
@@ -45,9 +45,10 @@ module decoder(input logic [1:0] Op,
 				4'b0000: ALUControl = 2'b10; // AND
 				4'b1100: ALUControl = 2'b11; // ORR
 				//EVLUATE OTHER CONDITION
-				//4'b1010: begin: ALUControl = 2'b01;
-				//NoWrite <= 1;
-				//end
+				4'b1010: begin
+							ALUControl = 2'b01;
+							NoWrite = 1'b1;
+							end
 				default: ALUControl = 2'bx; // unimplemented
 			endcase
 
@@ -59,7 +60,50 @@ module decoder(input logic [1:0] Op,
 				ALUControl = 2'b00; // add for non-DP instructions
 				FlagW = 2'b00; // don't update Flags
 			end
-			
+	end
 	// PC Logic
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
 endmodule
+
+
+/*
+ * Testbench to test the Alu Encoder
+ */ 
+module testbench_decoder();
+	 logic clk;
+    logic [1:0] Op;
+    logic [5:0] Funct;
+	 logic [3:0] Rd;
+    logic [1:0] FlagW;
+    logic PCS, RegW, MemW;
+    logic MemtoReg, ALUSrc;
+    logic [1:0] ImmSrc, RegSrc, ALUContro;
+	 logic NoWrite;
+
+	localparam DELAY = 10;
+	
+	// instantiate device to be tested
+	decoder dec(Op, Funct, Rd, FlagW, PCS, RegW, MemW, MemtoReg,
+				ALUSrc, ImmSrc, RegSrc, ALUControl, NoWrite);
+
+	// initialize test
+	initial
+	begin
+		Op <= 2'b00;
+		Funct[4:1] <= 4'b1100; 
+		Funct[0] <= 0;
+		#DELAY
+		Op <= 2'b00;
+		Funct[4:1] <= 4'b1010; 
+		Funct[0] <= 1;
+		$stop;
+	end
+
+	// generate clock to sequence tests
+	always
+	begin
+		clk <= 1; #(DELAY/2); 
+		clk <= 0; #(DELAY/2);
+	end
+endmodule
+

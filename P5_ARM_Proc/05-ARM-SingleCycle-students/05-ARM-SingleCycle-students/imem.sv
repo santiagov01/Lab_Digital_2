@@ -16,3 +16,5 @@ module imem(input logic [31:0] a, output logic [31:0] rd);
 
 	assign rd = RAM[a[31:2]]; // word aligned
 endmodule
+
+
