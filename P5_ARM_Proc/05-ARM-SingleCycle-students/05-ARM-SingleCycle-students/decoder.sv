@@ -7,7 +7,11 @@ module decoder(input logic [1:0] Op,
 					output logic [1:0] FlagW,
 					output logic PCS, RegW, MemW,
 					output logic MemtoReg, ALUSrc,
-					output logic [1:0] ImmSrc, RegSrc, ALUControl);
+					output logic [1:0] ImmSrc, RegSrc, ALUControl
+					//PONER UNA SALIDA MÁS: NOWRITE
+					//output logic NoWrite
+					);
+					
 	// Internal signals
 	logic [9:0] controls;
 	logic Branch, ALUOp;
@@ -33,12 +37,17 @@ module decoder(input logic [1:0] Op,
 
 	// ALU Decoder
 	always_comb
+		//NoWrite <= 0
 		if (ALUOp) begin // which DP Instr?
 			case(Funct[4:1])
 				4'b0100: ALUControl = 2'b00; // ADD
 				4'b0010: ALUControl = 2'b01; // SUB
 				4'b0000: ALUControl = 2'b10; // AND
 				4'b1100: ALUControl = 2'b11; // ORR
+				//EVLUATE OTHER CONDITION
+				//4'b1010: begin: ALUControl = 2'b01;
+				//NoWrite <= 1;
+				//end
 				default: ALUControl = 2'bx; // unimplemented
 			endcase
 
