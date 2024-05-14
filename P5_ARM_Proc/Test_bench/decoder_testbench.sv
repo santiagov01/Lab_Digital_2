@@ -1,15 +1,16 @@
-/*
- * Testbench to test the peripherals part
+/***************************************************************
+ * Testbench to test the Alu Encoder
  */ 
 module testbench_decoder();
+	 logic clk;
     logic [1:0] Op;
     logic [5:0] Funct;
-	logic [3:0] Rd;
+	 logic [3:0] Rd;
     logic [1:0] FlagW;
     logic PCS, RegW, MemW;
     logic MemtoReg, ALUSrc;
-    logic [1:0] ImmSrc, RegSrc, ALUContro;
-	logic NoWrite;
+    logic [1:0] ImmSrc, RegSrc, ALUControl;
+	 logic NoWrite;
 
 	localparam DELAY = 10;
 	
@@ -23,10 +24,11 @@ module testbench_decoder();
 		Op <= 2'b00;
 		Funct[4:1] <= 4'b1100; 
 		Funct[0] <= 0;
-		#DELAY
+		#(DELAY*5);
 		Op <= 2'b00;
 		Funct[4:1] <= 4'b1010; 
 		Funct[0] <= 1;
+		#(DELAY*5);
 		$stop;
 	end
 

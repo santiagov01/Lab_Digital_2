@@ -8,7 +8,9 @@ module decoder(input logic [1:0] Op,
 					output logic PCS, RegW, MemW,
 					output logic MemtoReg, ALUSrc,
 					output logic [1:0] ImmSrc, RegSrc, ALUControl,
-					output logic NoWrite);
+					output logic NoWrite,
+					output logic shift
+					);
 					//PONER UNA SALIDA MÁS: NOWRITE
 					
 					
@@ -38,16 +40,20 @@ module decoder(input logic [1:0] Op,
 	//*************ALU Decoder********************+
 	always_comb begin
 		NoWrite = 1'b0;
+		shift = 1'b0;
 		if (ALUOp) begin // which DP Instr?
 			case(Funct[4:1])
 				4'b0100: ALUControl = 2'b00; // ADD
 				4'b0010: ALUControl = 2'b01; // SUB
 				4'b0000: ALUControl = 2'b10; // AND
-				4'b1100: ALUControl = 2'b11; // ORR
-				//EVLUATE OTHER CONDITION
-				4'b1010: begin
+				4'b1100: ALUControl = 2'b11; // ORR				
+				4'b1010: begin //CMP
 							ALUControl = 2'b01;
 							NoWrite = 1'b1;
+							end
+				4'b1101: begin
+							ALUControl = 2'bx;
+							shift = 1'b1;
 							end
 				default: ALUControl = 2'bx; // unimplemented
 			endcase
@@ -66,7 +72,7 @@ module decoder(input logic [1:0] Op,
 endmodule
 
 
-/*
+/***************************************************************
  * Testbench to test the Alu Encoder
  */ 
 module testbench_decoder();
@@ -77,7 +83,7 @@ module testbench_decoder();
     logic [1:0] FlagW;
     logic PCS, RegW, MemW;
     logic MemtoReg, ALUSrc;
-    logic [1:0] ImmSrc, RegSrc, ALUContro;
+    logic [1:0] ImmSrc, RegSrc, ALUControl;
 	 logic NoWrite;
 
 	localparam DELAY = 10;
@@ -92,10 +98,11 @@ module testbench_decoder();
 		Op <= 2'b00;
 		Funct[4:1] <= 4'b1100; 
 		Funct[0] <= 0;
-		#DELAY
+		#(DELAY*5);
 		Op <= 2'b00;
 		Funct[4:1] <= 4'b1010; 
 		Funct[0] <= 1;
+		#(DELAY*5);
 		$stop;
 	end
 
