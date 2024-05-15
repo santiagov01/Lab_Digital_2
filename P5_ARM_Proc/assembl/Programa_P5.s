@@ -4,8 +4,8 @@ _start:
 //
 
 	MOV R0, #0// contador de estados.
-	LDR R1 , =Switches // Cargar direccion de switches
-	LDR R1 , [R1]		// Cargar en R1 el valor de la direccion de switches
+	LDR R1, [R0]		// Cargar en R1 el valor de la direccion de switches
+	MOV R12, #0
 	
 Debouncing: // Loop de Debouncing, solo cambia de estado cuando se mueva el pulsador.
 	
@@ -18,11 +18,12 @@ Current_leds:
 	LDR R2, [R1]
 	LSL R2, R2, #24    // Desplaza los bits de R4 24 posiciones a la izquierda
     ASR R2, R2, #24
-	STR R2, [R1, #-0x40]   // Guarda en LEDs el valor de Switches
-	//STR R2, [R1, #-0x20]   // Guarda en el display el valor de Switches
+	STR R2, [R1, #4]   // Guarda en LEDs el valor de Switches
+	STR R2, [R1, #8]   // Guarda en el display el valor de Switches
+	STR R12, [R1, #12]   // Guarda en el display LA LETRA
 Not_leds:// si ya se ingreso A y B, se muestran LED de Resultado (R0 > 2).
 
-	LDR R3, [R1,#0x10] // cargo en R3 el valor que tenga en PushBotton (sumo offset)
+	LDR R3, [R1,#16] // cargo en R3 el valor que tenga en PushBotton (sumo offset)
 
     CMP R3, #0            // Comprueba si el botón no esta presionado
     MOVEQ R12, #0          // Si no está presionado, resetea el estado anterior
@@ -70,8 +71,9 @@ Operar:
     //Sumar los valores
     ADD R8, R4, R5     // Suma R4 y R5, guarda el resultado en R6
 	
-	STR R8 , [R1, #-0x40] // actualiza leds
-	//STR R8, [R1, #-0x20]  // actualiza display
+	STR R8 , [R1, #4] // actualiza leds
+	STR R2, [R1, #8]  // actualiza display
+	STR R12, [R1, #12]   // Guarda en el display LA LETRA
 	ADD R0, R0, #1 // pasa a estado 3
 	b Debouncing
 
@@ -83,9 +85,4 @@ Reset:
 	
 .data
 
-Switches: .DC.L 0xFF200040
-
-	
-.data
-
-Switches: .DC.L 0xFF200040
+Switches: .DC.L 0xC0000000
