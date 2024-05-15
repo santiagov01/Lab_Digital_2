@@ -1,9 +1,10 @@
 /*
  * This module is the TOP of the ARM single-cycle processor
  */ 
-module top(input logic clk, nreset,
+module top(input logic clk, nreset, PB,
 			  input logic [9:0] switches,
-			  output logic [9:0] leds);
+			  output logic [9:0] leds,
+			  output logic [6:0] disp4, disp3, disp2, disp1, disp0);
 
 	// Internal signals
 	logic reset;
@@ -16,7 +17,7 @@ module top(input logic clk, nreset,
 	imem imem(PC, Instr);
 
 	// Instantiate data memory (RAM + peripherals)
-	dmem dmem(clk, MemWrite, DataAdr, WriteData, ReadData, switches, leds);
+	dmem dmem(clk, MemWrite, DataAdr, WriteData, ReadData, switches, PB, leds, disp4, disp3, disp2, disp1, disp0);
 
 	// Instantiate processor
 	arm arm(clk, reset, PC, Instr, MemWrite, DataAdr, WriteData, ReadData);
@@ -27,22 +28,35 @@ endmodule
  */ 
 module testbench_peripherals_top();
 	logic clk;
-	logic reset;
+	logic reset, PB;
 	logic [9:0] switches, leds;
+	logic [6:0] disp4, disp3, disp2, disp1, disp0;
 
 	localparam DELAY = 10;
 	
 	// instantiate device to be tested
-	top dut(clk, reset, switches, leds);
+	top dut(clk, reset, PB, switches, leds, disp4, disp3, disp2, disp1, disp0);
 
 	// initialize test
 	initial
 	begin
-		reset <= 0; #DELAY; 
+		reset <= 0; #(DELAY*200); 
 		reset <= 1; 
 		
-		switches <= 10'd4; #(DELAY*2000);
-		
+		switches <= 10'b00_0000_1001; #(DELAY*20); //9
+		PB <= 1'b1; #(DELAY*100);
+		switches <= 10'b00_0011_0001; #(DELAY*20);//49
+		PB <= 1'b1; #(DELAY*100);
+		//R = 58
+		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
+		PB <= 1'b1; #(DELAY*100);
+		switches <= 10'b00_0011_0001; #(DELAY*20);//49		
+		PB <= 1'b1; #(DELAY*100);
+		//R=-39
+		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
+		PB <= 1'b1; #(DELAY*100);
+		switches <= 10'b00_1110_1100; #(DELAY*20);//49		
+		PB <= 1'b1; #(DELAY*100);
 		$stop;
 	end
 
