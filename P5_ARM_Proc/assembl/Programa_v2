@@ -1,0 +1,67 @@
+.global _start
+_start:
+	MOV R0,#0 //LECTURA DE PERIFERICOS
+	MOV R2,#0 //A
+	MOV R3,#0 //B
+	MOV R4,#0 //ESTADOS
+	MOV R5,#0 //R
+	
+	//LDR R1,=DBase
+	MOV R1, #0 //Cargar primera posicion
+	LDR R1,[R1] //Load Address
+	
+LOOP:
+	LDR R0,[R1] //VALOR DE LOS SWITCH
+	STR R0,[R1,#4] //ESCRIBIMOS EN LOS LEDS
+	STR R0, [R1, #0x8] //Escribir valor en display
+	STR R4, [R1, #0xC] //Indicar A, B, R en display
+	LDR R0,[R1,#0x10] //VALOR DEL BOTON
+	CMP R0,#0
+	BNE OPRIMIR_BOTON
+	B LOOP
+
+OPRIMIR_BOTON:
+	LDR R0,[R1,#0x10] //VALOR DEL BOTON
+	CMP R0,#0
+	BNE OPRIMIR_BOTON
+	STR R4, [R1, #0xC] //Indicar A, B, R en display
+	CMP R4,#1
+	BLO GUARDAR_A
+	BEQ GUARDAR_B
+	MOV R4,#0 //REINICIAMOS LOS ESTADOS
+	B   LOOP
+	
+GUARDAR_A:
+	LDR R2,[R1]
+	ADD R4,R4,#1  //PASA AL ESTADO SIGUIENTE
+	B LOOP
+	
+GUARDAR_B:
+	LDR R3,[R1]
+	ADD R4,R4,#1  //PASA AL ESTADO SIGUIENTE
+	
+	B SUMAR
+
+SUMAR:
+	STR R4, [R1, #0xC] //Indicar A, B, R en display
+	LSL R2,#24
+	ASR R2,#24
+	
+	LSL R3,#24
+	ASR R3,#24
+	
+	ADD R5,R2,R3
+	//MOV R0,#0
+	STR R5,[R1,#4] //ESCRIBIMOS EN LOS LED
+	STR R5, [R1, #0x8] //Escribir resultado en display
+	B MANTENER_R
+
+MANTENER_R:
+	LDR R0,[R1,#0x10] //VALOR DEL BOTON
+	CMP R0,#0
+	BNE OPRIMIR_BOTON
+	B MANTENER_R
+
+.DATA 
+DBase: .DC.L 0xC0000000
+	
