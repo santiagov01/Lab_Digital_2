@@ -15,9 +15,9 @@ Debouncing: // Loop de Debouncing, solo cambia de estado cuando se mueva el puls
 	
 Current_leds: 
 	
-	LDR R2, [R1]
-	STR R2, [R1, #-0x40] // Guarda en LEDs el valor de Switches
-
+	LDR R2, [R1]  
+	STR R2, [R1, #-0x40]   // Guarda en LEDs el valor de Switches
+	STR R2, [R1, #-0x20]   // Guarda en el display el valor de Switches
 Not_leds:// si ya se ingreso A y B, se muestran LED de Resultado (R0 > 2).
 
 	LDR R3, [R1,#0x10] // cargo en R3 el valor que tenga en PushBotton (sumo offset)
@@ -67,6 +67,7 @@ Operar:
     ADD R8, R4, R5     // Suma R4 y R5, guarda el resultado en R6
 	
 	STR R8 , [R1, #-0x40] // actualiza leds
+	STR R8, [R1, #-0x20]  // actualiza display
 	ADD R0, R0, #1 // pasa a estado 3
 	b Debouncing
 
@@ -74,6 +75,11 @@ Reset:
 	MOV R0, #0
 	B Debouncing
 
+
+	
+.data
+
+Switches: .DC.L 0xFF200040
 
 	
 .data
