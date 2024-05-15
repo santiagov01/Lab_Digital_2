@@ -42,10 +42,10 @@ set_global_assignment -name DEVICE 10M50DAF484C6GES
 set_global_assignment -name TOP_LEVEL_ENTITY top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 22.1STD.2
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:33:12  OCTOBER 15, 2023"
-set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.2 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "20.1.1 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name BOARD "MAX 10 DE10 - Lite"
-set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (SystemVerilog)"
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
@@ -84,7 +84,6 @@ set_location_assignment PIN_A13 -to switches[6]
 set_location_assignment PIN_A14 -to switches[7]
 set_location_assignment PIN_B14 -to switches[8]
 set_location_assignment PIN_F15 -to switches[9]
-set_location_assignment PIN_B8 -to reset
 set_location_assignment PIN_A8 -to leds[0]
 set_location_assignment PIN_A9 -to leds[1]
 set_location_assignment PIN_A10 -to leds[2]
@@ -117,7 +116,7 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to leds[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to leds[7]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to leds[8]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to leds[9]
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "SYSTEMVERILOG HDL" -section_id eda_simulation
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_RUN_TOOL_AUTOMATICALLY OFF -section_id eda_simulation
 set_global_assignment -name SYSTEMVERILOG_FILE shift_mod.sv
@@ -151,4 +150,50 @@ set_location_assignment PIN_C19 -to disp3[3]
 set_location_assignment PIN_E21 -to disp3[2]
 set_location_assignment PIN_E22 -to disp3[1]
 set_location_assignment PIN_F21 -to disp3[0]
+set_location_assignment PIN_F20 -to disp4[6]
+set_location_assignment PIN_F19 -to disp4[5]
+set_location_assignment PIN_H19 -to disp4[4]
+set_location_assignment PIN_J18 -to disp4[3]
+set_location_assignment PIN_G19 -to disp4[2]
+set_location_assignment PIN_E20 -to disp4[1]
+set_location_assignment PIN_F18 -to disp4[0]
+set_location_assignment PIN_B8 -to nreset
+set_location_assignment PIN_A7 -to nPB
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp0[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp1[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp2[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp3[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to disp4[0]
+set_instance_assignment -name IO_STANDARD "3.3 V SCHMITT TRIGGER" -to nPB
+set_instance_assignment -name IO_STANDARD "3.3 V SCHMITT TRIGGER" -to nreset
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

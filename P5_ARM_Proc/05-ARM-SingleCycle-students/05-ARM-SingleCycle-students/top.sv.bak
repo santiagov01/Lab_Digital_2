@@ -44,17 +44,12 @@ module testbench_peripherals_top();
 		reset <= 0; #(DELAY*20); 
 		reset <= 1; 
 		
-		PB <= 1'b1;
-		
 		switches <= 10'b00_0000_1001; #(DELAY*20); //9
 		PB <= 1'b0; #(DELAY*10);
 		PB <= 1'b1; #(DELAY*10);
-		#(DELAY*200);
 		switches <= 10'b00_0011_0001; #(DELAY*20);//49
 		PB <= 1'b0; #(DELAY*10);
 		PB <= 1'b1; #(DELAY*10);
-		
-		#(DELAY*200);
 		//R = 58
 		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
 		PB <= 1'b0; #(DELAY*10);
@@ -62,7 +57,6 @@ module testbench_peripherals_top();
 		switches <= 10'b00_0011_0001; #(DELAY*20);//49		
 		PB <= 1'b0; #(DELAY*10);
 		PB <= 1'b1; #(DELAY*10);
-		#(DELAY*200);
 		//R=-39
 		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
 		PB <= 1'b0; #(DELAY*10);
@@ -70,7 +64,6 @@ module testbench_peripherals_top();
 		switches <= 10'b00_1110_1100; #(DELAY*20);//-20 creo xd		
 		PB <= 1'b0; #(DELAY*10);
 		PB <= 1'b1; #(DELAY*10);
-		#(DELAY*200);
 		$stop;
 	end
 
