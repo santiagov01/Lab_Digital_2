@@ -25,9 +25,9 @@ module peripheral_deco7seg(
 			endcase
 		end else begin		
 			case(D)				 //gfedcba
-				4'b1010: SEG = 7'b0001000; // 0x08 (A)
- 				4'b1011: SEG = 7'b0000011; // 0x03 (b)
-				4'b1100: SEG = 7'b1001110; // 0x46 (r)
+				4'b0000: SEG = 7'b0001000; // 0x08 (A)
+ 				4'b0001: SEG = 7'b0000011; // 0x03 (b)
+				4'b0010: SEG = 7'b1001110; // 0x46 (r)
 				default: SEG = 7'b1111111;
 			endcase	
 		end

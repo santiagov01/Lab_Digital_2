@@ -1,14 +1,15 @@
 /*
  * This module is the TOP of the ARM single-cycle processor
  */ 
-module top(input logic clk, nreset, PB,
+module top(input logic clk, nreset, nPB,
 			  input logic [9:0] switches,
 			  output logic [9:0] leds,
 			  output logic [6:0] disp4, disp3, disp2, disp1, disp0);
 
 	// Internal signals
-	logic reset;
+	logic reset, PB;
 	assign reset = ~nreset;
+	assign PB = ~nPB;
 	logic [31:0] PC, Instr, ReadData;
 	logic [31:0] WriteData, DataAdr;
 	logic MemWrite;
@@ -40,23 +41,29 @@ module testbench_peripherals_top();
 	// initialize test
 	initial
 	begin
-		reset <= 0; #(DELAY*200); 
+		reset <= 0; #(DELAY*20); 
 		reset <= 1; 
 		
 		switches <= 10'b00_0000_1001; #(DELAY*20); //9
-		PB <= 1'b1; #(DELAY*100);
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
 		switches <= 10'b00_0011_0001; #(DELAY*20);//49
-		PB <= 1'b1; #(DELAY*100);
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
 		//R = 58
 		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
-		PB <= 1'b1; #(DELAY*100);
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
 		switches <= 10'b00_0011_0001; #(DELAY*20);//49		
-		PB <= 1'b1; #(DELAY*100);
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
 		//R=-39
 		switches <= 10'b00_1111_0110; #(DELAY*20); //-10
-		PB <= 1'b1; #(DELAY*100);
-		switches <= 10'b00_1110_1100; #(DELAY*20);//49		
-		PB <= 1'b1; #(DELAY*100);
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
+		switches <= 10'b00_1110_1100; #(DELAY*20);//-20 creo xd		
+		PB <= 1'b0; #(DELAY*10);
+		PB <= 1'b1; #(DELAY*10);
 		$stop;
 	end
 

@@ -2,7 +2,7 @@
  * This module is the Data Memory of the ARM single-cycle processor
  * It corresponds to the RAM array and some external peripherals
  */ 
-module dmem(input logic clk, we, input logic [31:0] a, wd, output logic [31:0] rd,
+		module dmem(input logic clk, we, input logic [31:0] a, wd, output logic [31:0] rd,
             input logic [9:0] switches, input logic PB, output logic [9:0] leds, 
 				output logic [7:0] disp4, disp3, disp2, disp1, disp0);
 	// Internal array for the memory (Only 64 32-words)
@@ -34,11 +34,11 @@ module dmem(input logic clk, we, input logic [31:0] a, wd, output logic [31:0] r
 				leds <= wd[9:0];
 			else if (a == 32'hC000_0008)
 				display <= wd[7:0]; // Write into displays ()
-			else if (a == 32'hC000_000C)	// Read from letter 
-				ABR = wd[3:0];
+			else if (a == 32'hC000_000C)	// Write to letter
+				ABR = wd[3:0]; // 00, 01 , 10
 			else	
 				RAM[a[31:2]] <= wd;
 	end	
 	//Enter 8bit switches, letter state, and displays as output
-	displays bombolbi (display, ABR, disp4, disp3, disp2, disp1, disp0);
+	displays d(display, ABR, disp4, disp3, disp2, disp1, disp0);
 endmodule
