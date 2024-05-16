@@ -14,9 +14,9 @@
 		// Uncomment the following line only if you want to load the required data for the peripherals test
 		//$readmemh("dmem_to_test_peripherals.dat",RAM);
 		
-      //$readmemh("D:/Estudio/OneDrive - Universidad de Antioquia/Estudio/Materias/S6/Digital 2/Laboratorio/Repositorio/Lab_Digital_2/P5_ARM_Proc/05-ARM-SingleCycle-students/05-ARM-SingleCycle-students/dmem_to_test_peripherals.dat",RAM);
+      $readmemh("D:/Estudio/OneDrive - Universidad de Antioquia/Estudio/Materias/S6/Digital 2/Laboratorio/Repositorio/Lab_Digital_2/P5_ARM_Proc/05-ARM-SingleCycle-students/05-ARM-SingleCycle-students/dmem_made_by_students.dat",RAM);
 		// Uncomment the following line only if you want to load the required data for the program made by your group
-		$readmemh("/home/estudiante/Descargas/aaaaaaaaa/santiagov01 Lab_Digital_2 main P5_ARM_Proc/05-ARM-SingleCycle-students/05-ARM-SingleCycle-students/dmem_made_by_students.dat",RAM);
+		//$readmemh("/home/estudiante/Descargas/aaaaaaaaa/santiagov01 Lab_Digital_2 main P5_ARM_Proc/05-ARM-SingleCycle-students/05-ARM-SingleCycle-students/dmem_made_by_students.dat",RAM);
 	
 	// Process for reading from RAM array or peripherals mapped in memory
 	always_comb
